@@ -25,9 +25,9 @@ echo -e "${YELLOW}Deleting all resources in namespace: $NAMESPACE${NC}"
 
 kubectl delete -f ./devopsconfigs/k8s-manifests/03-cronjob-cleanup.yaml -n $NAMESPACE --ignore-not-found=true
 
-kubectl delete -f ./devopsconfigs/frontend/frontend.yaml -n $NAMESPACE --ignore-not-found=true
+kubectl delete -f ./devopsconfigs/frontend/devopsconfigs/frontend.yaml -n $NAMESPACE --ignore-not-found=true
 
-kubectl delete -f ./devopsconfigs/backend/backend.yaml -n $NAMESPACE --ignore-not-found=true
+kubectl delete -f ./devopsconfigs/backend/devopsconfigs/backend.yaml -n $NAMESPACE --ignore-not-found=true
 
 kubectl delete -f ./devopsconfigs/k8s-manifests/01-mongo.yaml -n $NAMESPACE --ignore-not-found=true
 

@@ -22,11 +22,11 @@ else
 fi
 
 echo -e "${YELLOW}Building Docker images...${NC}"
-echo "Building backend..."
-docker build -t backend-app:latest -f ./devopsconfigs/backend/Dockerfile ./backend
+echo "Building devopsconfigs/backend..."
+docker build -t devopsconfigs/backend-app:latest -f ./devopsconfigs/backend/Dockerfile ./devopsconfigs/backend
 
-echo "Building frontend..."
-docker build -t frontend-app:latest -f ./devopsconfigs/frontend/Dockerfile ./frontend
+echo "Building devopsconfigs/frontend..."
+docker build -t devopsconfigs/frontend-app:latest -f ./devopsconfigs/frontend/Dockerfile ./devopsconfigs/frontend
 
 echo -e "${GREEN}Docker images built successfully!${NC}"
 echo ""
@@ -43,13 +43,13 @@ echo "Waiting for MongoDB to be ready..."
 kubectl wait --for=condition=ready pod -l app=mongodb -n $NAMESPACE --timeout=120s
 
 echo "Deploying Backend..."
-kubectl apply -f ./devopsconfigs/backend/backend.yaml -n $NAMESPACE
+kubectl apply -f ./devopsconfigs/backend/devopsconfigs/backend.yaml -n $NAMESPACE
 
 echo "Waiting for Backend to be ready..."
-kubectl wait --for=condition=ready pod -l app=backend -n $NAMESPACE --timeout=120s
+kubectl wait --for=condition=ready pod -l app=devopsconfigs/backend -n $NAMESPACE --timeout=120s
 
 echo "Deploying Frontend..."
-kubectl apply -f ./devopsconfigs/frontend/frontend.yaml -n $NAMESPACE
+kubectl apply -f ./devopsconfigs/frontend/devopsconfigs/frontend.yaml -n $NAMESPACE
 
 echo "Deploying CronJob..."
 kubectl apply -f ./devopsconfigs/k8s-manifests/03-cronjob-cleanup.yaml -n $NAMESPACE
@@ -81,8 +81,8 @@ echo -e "Frontend: ${GREEN}http://localhost:30002${NC}"
 echo -e "Backend:  ${GREEN}http://localhost:30001${NC}"
 echo ""
 echo -e "${YELLOW}To check logs:${NC}"
-echo "kubectl logs -f deployment/backend -n $NAMESPACE"
-echo "kubectl logs -f deployment/frontend -n $NAMESPACE"
+echo "kubectl logs -f deployment/devopsconfigs/backend -n $NAMESPACE"
+echo "kubectl logs -f deployment/devopsconfigs/frontend -n $NAMESPACE"
 echo ""
 echo -e "${YELLOW}To delete deployment:${NC}"
 echo "./devopsconfigs/cleanup.sh"

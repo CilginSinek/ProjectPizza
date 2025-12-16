@@ -18,24 +18,24 @@ echo ""
 echo -e "${YELLOW}Building Backend image...${NC}"
 if [ -z "$REGISTRY" ]; then
     docker build \
-        -t backend-app:latest \
-        -t backend-app:$VERSION \
+        -t devopsconfigs/backend-app:latest \
+        -t devopsconfigs/backend-app:$VERSION \
         -f ./devopsconfigs/backend/Dockerfile \
-        ./backend
+        ./devopsconfigs/backend
     
     echo -e "${GREEN}Backend images created:${NC}"
-    echo "  - backend-app:latest"
-    echo "  - backend-app:$VERSION"
+    echo "  - devopsconfigs/backend-app:latest"
+    echo "  - devopsconfigs/backend-app:$VERSION"
 else
     docker build \
-        -t $REGISTRY/backend-app:latest \
-        -t $REGISTRY/backend-app:$VERSION \
+        -t $REGISTRY/devopsconfigs/backend-app:latest \
+        -t $REGISTRY/devopsconfigs/backend-app:$VERSION \
         -f ./devopsconfigs/backend/Dockerfile \
-        ./backend
+        ./devopsconfigs/backend
     
     echo -e "${GREEN}Backend images created:${NC}"
-    echo "  - $REGISTRY/backend-app:latest"
-    echo "  - $REGISTRY/backend-app:$VERSION"
+    echo "  - $REGISTRY/devopsconfigs/backend-app:latest"
+    echo "  - $REGISTRY/devopsconfigs/backend-app:$VERSION"
 fi
 
 echo ""
@@ -43,24 +43,24 @@ echo ""
 echo -e "${YELLOW}Building Frontend image...${NC}"
 if [ -z "$REGISTRY" ]; then
     docker build \
-        -t frontend-app:latest \
-        -t frontend-app:$VERSION \
+        -t devopsconfigs/frontend-app:latest \
+        -t devopsconfigs/frontend-app:$VERSION \
         -f ./devopsconfigs/frontend/Dockerfile \
-        ./frontend
+        ./devopsconfigs/frontend
     
     echo -e "${GREEN}Frontend images created:${NC}"
-    echo "  - frontend-app:latest"
-    echo "  - frontend-app:$VERSION"
+    echo "  - devopsconfigs/frontend-app:latest"
+    echo "  - devopsconfigs/frontend-app:$VERSION"
 else
     docker build \
-        -t $REGISTRY/frontend-app:latest \
-        -t $REGISTRY/frontend-app:$VERSION \
+        -t $REGISTRY/devopsconfigs/frontend-app:latest \
+        -t $REGISTRY/devopsconfigs/frontend-app:$VERSION \
         -f ./devopsconfigs/frontend/Dockerfile \
-        ./frontend
+        ./devopsconfigs/frontend
     
     echo -e "${GREEN}Frontend images created:${NC}"
-    echo "  - $REGISTRY/frontend-app:latest"
-    echo "  - $REGISTRY/frontend-app:$VERSION"
+    echo "  - $REGISTRY/devopsconfigs/frontend-app:latest"
+    echo "  - $REGISTRY/devopsconfigs/frontend-app:$VERSION"
 fi
 
 echo ""
@@ -70,7 +70,7 @@ echo -e "${GREEN}=================================${NC}"
 echo ""
 
 echo -e "${YELLOW}Local images:${NC}"
-docker images | grep -E "(backend-app|frontend-app)"
+docker images | grep -E "(devopsconfigs/backend-app|devopsconfigs/frontend-app)"
 
 echo ""
 echo -e "${YELLOW}Usage examples:${NC}"
@@ -80,8 +80,8 @@ echo ""
 
 if [ ! -z "$REGISTRY" ]; then
     echo -e "${YELLOW}To push images to registry:${NC}"
-    echo "  docker push $REGISTRY/backend-app:$VERSION"
-    echo "  docker push $REGISTRY/backend-app:latest"
-    echo "  docker push $REGISTRY/frontend-app:$VERSION"
-    echo "  docker push $REGISTRY/frontend-app:latest"
+    echo "  docker push $REGISTRY/devopsconfigs/backend-app:$VERSION"
+    echo "  docker push $REGISTRY/devopsconfigs/backend-app:latest"
+    echo "  docker push $REGISTRY/devopsconfigs/frontend-app:$VERSION"
+    echo "  docker push $REGISTRY/devopsconfigs/frontend-app:latest"
 fi
