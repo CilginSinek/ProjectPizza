@@ -86,7 +86,7 @@ const Upload = () => {
     formData.append('files', selectedFile.file);
     
     // Backend expects 'fileNames' array. Using [] ensures it's parsed as an array by Express (extended: true)
-    formData.append('fileNames[]', selectedFile.file.name); 
+    formData.append('fileName', selectedFile.file.name); 
 
     formData.append('accessLevel', shareSettings.accessType); // Backend expects 'accessLevel'
     formData.append('downloadLimit', shareSettings.downloadLimit === 'unlimited' ? '999' : shareSettings.downloadLimit);

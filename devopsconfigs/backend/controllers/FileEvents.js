@@ -50,10 +50,10 @@ async function uploadFiles(req, res) {
   }
   const file = req.files;
 
-  if(req.body.fileNames.length > 1){
+  if(typeof req.body.fileName === 'string' && req.body.fileName.length > 0){
     return res.status(400).send({
       status: "error",
-      message: "Only single file upload is supported in this endpoint.",
+      message: "fileName must be a string filename.",
       timestamp: new Date().toISOString(),
     });
   }
