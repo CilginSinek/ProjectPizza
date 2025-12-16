@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { logout } from '../utils/auth';
 
 interface UploadedFile {
@@ -9,6 +9,7 @@ interface UploadedFile {
 }
 
 const Upload = () => {
+  const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [shareSettings, setShareSettings] = useState({
@@ -16,6 +17,7 @@ const Upload = () => {
     downloadLimit: '5',
     accessType: 'public' as 'public' | 'restricted' | 'password',
     allowedEmails: [] as string[],
+    password: '',
   });
   const [emailInput, setEmailInput] = useState('');
   const [generatedLink, setGeneratedLink] = useState<string>('');
@@ -86,13 +88,19 @@ const Upload = () => {
     formData.append('expiryTime', shareSettings.expiryTime);
     formData.append('allowedEmails', JSON.stringify(shareSettings.allowedEmails));
 
-    const response = await fetch(import.meta.env.VITE_API_URL + '/files/upload', {
+    const token = localStorage.getItem('token');
+    const response = await fetch('/api/files/upload', {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
       body: formData,
     });
     const data = await response.json();
     setGeneratedLink(data.data.link);
     setIsUploading(false);
+    alert('Dosya başarıyla yüklendi! Dashboard\'a yönlendiriliyorsunuz.');
+    navigate('/dashboard');
 
 
   };

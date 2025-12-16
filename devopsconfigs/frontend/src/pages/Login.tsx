@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { setToken } from '../utils/auth';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ const Login = () => {
     }
 
     try {
-      const response = await fetch(import.meta.env.VITE_API_URL + '/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +65,7 @@ const Login = () => {
 
       // Backend returns { status: "success" | "error", data, message }
       if (result.status === 'success') {
-        localStorage.setItem('token', result.data.token);
+        setToken(result.data.token, rememberMe);
         alert('Giriş başarılı!');
         navigate('/dashboard');
       } else {

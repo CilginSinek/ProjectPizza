@@ -33,7 +33,13 @@ const Download = () => {
     const fetchFileInfo = async () => {
       setLoading(true);
       try {
-        const response = await fetch(import.meta.env.VITE_API_URL + '/files/metadata/' + fileId);
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/files/metadata/' + fileId, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
         const data = await response.json();
         setFileInfo(data.data);
 

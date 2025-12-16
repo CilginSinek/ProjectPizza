@@ -1,15 +1,20 @@
 // Auth utility functions
 
 export const getToken = (): string | null => {
-  return localStorage.getItem('token');
+  return localStorage.getItem('token') || sessionStorage.getItem('token');
 };
 
-export const setToken = (token: string): void => {
-  localStorage.setItem('token', token);
+export const setToken = (token: string, rememberMe: boolean = true): void => {
+  if (rememberMe) {
+    localStorage.setItem('token', token);
+  } else {
+    sessionStorage.setItem('token', token);
+  }
 };
 
 export const removeToken = (): void => {
   localStorage.removeItem('token');
+  sessionStorage.removeItem('token');
 };
 
 export const isAuthenticated = (): boolean => {
@@ -36,7 +41,7 @@ export const getCurrentUser = async () => {
   }
 
   try {
-    const response = await fetch(import.meta.env.VITE_API_URL + '/api/auth/me', {
+    const response = await fetch('/api/auth/me', {
       headers: {
         ...getAuthHeader(),
       },

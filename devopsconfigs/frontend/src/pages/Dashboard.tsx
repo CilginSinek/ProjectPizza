@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { logout } from '../utils/auth';
 
@@ -17,7 +17,7 @@ interface SharedFile {
 
 const Dashboard = () => {
   // Mock data
-  const [files, setFiles] = useState<SharedFile[]>();
+  const [files, setFiles] = useState<SharedFile[]>([]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -56,11 +56,54 @@ const Dashboard = () => {
     alert('Link kopyalandı!');
   };
 
-  const handleDelete = (fileId: string) => {
+  const handleDelete = async (fileId: string) => {
     if (window.confirm('Bu dosyayı silmek istediğinize emin misiniz?')) {
-      // TODO: API call to delete file
-      console.log('Deleting file:', fileId);
-      alert('Dosya silindi! (API entegrasyonu yapılacak)');
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/files/delete/${fileId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          setFiles(files.filter((f) => f.id !== fileId));
+          alert('Dosya başarıyla silindi.');
+        } else {
+          const data = await response.json();
+          alert(data.message || 'Dosya silinirken bir hata oluştu.');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert('Bir hata oluştu.');
+      }
+    }
+  };
+
+  const handleDownload = async (file: SharedFile) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(file.shareLink, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('Download failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('İndirme başarısız oldu.');
     }
   };
 
@@ -76,11 +119,23 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const response = await fetch(import.meta.env.VITE_API_URL + '/api/dashboard');
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/files/list', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
-        setFiles(data.data);
+        setFiles(data.data || []);
       } catch (error) {
         console.error('Error fetching files:', error);
+        setFiles([]);
       }
     };
     fetchFiles();
@@ -272,15 +327,13 @@ const Dashboard = () => {
                         >
                           📋
                         </button>
-                        <a
-                          href={file.shareLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => handleDownload(file)}
                           className="text-blue-600 hover:text-blue-900 text-sm font-medium"
-                          title="Linki Aç"
+                          title="İndir"
                         >
                           🔗
-                        </a>
+                        </button>
                         <button
                           onClick={() => handleDelete(file.id)}
                           className="text-red-600 hover:text-red-900 text-sm font-medium"
