@@ -36,7 +36,7 @@ export const getCurrentUser = async () => {
   }
 
   try {
-    const response = await fetch('/api/auth/me', {
+    const response = await fetch(import.meta.env.VITE_API_URL + '/api/auth/me', {
       headers: {
         ...getAuthHeader(),
       },
