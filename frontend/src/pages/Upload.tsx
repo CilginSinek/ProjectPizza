@@ -273,7 +273,7 @@ const Upload = () => {
                       name="accessType"
                       value="public"
                       checked={shareSettings.accessType === 'public'}
-                      onChange={(e) => setShareSettings({ ...shareSettings, accessType: 'public' })}
+                      onChange={() => setShareSettings({ ...shareSettings, accessType: 'public' })}
                       className="mt-1 mr-3"
                     />
                     <div>
@@ -295,7 +295,7 @@ const Upload = () => {
                       name="accessType"
                       value="restricted"
                       checked={shareSettings.accessType === 'restricted'}
-                      onChange={(e) => setShareSettings({ ...shareSettings, accessType: 'restricted' })}
+                      onChange={() => setShareSettings({ ...shareSettings, accessType: 'restricted' })}
                       className="mt-1 mr-3"
                     />
                     <div className="flex-1">
@@ -357,7 +357,7 @@ const Upload = () => {
                       name="accessType"
                       value="password"
                       checked={shareSettings.accessType === 'password'}
-                      onChange={(e) => setShareSettings({ ...shareSettings, accessType: 'password' })}
+                      onChange={() => setShareSettings({ ...shareSettings, accessType: 'password' })}
                       className="mt-1 mr-3"
                     />
                     <div className="flex-1">

@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -30,8 +30,8 @@ const Register = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Ad Soyad gereklidir';
+    if (!formData.username.trim()) {
+      newErrors.username = 'Kullanıcı adı gereklidir';
     }
 
     if (!formData.email.trim()) {
@@ -64,14 +64,13 @@ const Register = () => {
     }
 
     try {
-      // TODO: Replace with real API endpoint
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fullName: formData.fullName,
+          username: formData.username,
           email: formData.email,
           password: formData.password,
         }),
@@ -79,14 +78,12 @@ const Register = () => {
 
       const result = await response.json();
 
-      if (result.success) {
-        // Sadece token'ı kaydet
-        localStorage.setItem('token', result.data.token);
-
-        alert('Kayıt başarılı!');
-        navigate('/dashboard');
+      // Backend returns { status: "success" | "error", data, message }
+      if (result.status === 'success') {
+        alert('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
+        navigate('/login');
       } else {
-        alert(result.error?.message || 'Kayıt başarısız!');
+        alert(result.message || 'Kayıt başarısız!');
       }
     } catch (error) {
       console.error('Register error:', error);
@@ -107,24 +104,24 @@ const Register = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Full Name */}
+          {/* Username */}
           <div>
-            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-              Ad Soyad
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              Kullanıcı Adı
             </label>
             <input
               type="text"
-              id="fullName"
-              name="fullName"
-              value={formData.fullName}
+              id="username"
+              name="username"
+              value={formData.username}
               onChange={handleChange}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition ${
-                errors.fullName ? 'border-red-500' : 'border-gray-300'
+                errors.username ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Adınız Soyadınız"
+              placeholder="Kullanıcı adınızı seçin"
             />
-            {errors.fullName && (
-              <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+            {errors.username && (
+              <p className="text-red-500 text-sm mt-1">{errors.username}</p>
             )}
           </div>
 

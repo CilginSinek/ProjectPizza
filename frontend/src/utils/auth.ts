@@ -44,7 +44,8 @@ export const getCurrentUser = async () => {
 
     const result = await response.json();
 
-    if (result.success) {
+    // Backend returns { status: "success" | "error", data, message }
+    if (result.status === 'success') {
       return result.data;
     }
 

@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
   });
 
@@ -29,10 +29,8 @@ const Login = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'E-posta gereklidir';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Geçerli bir e-posta adresi girin';
+    if (!formData.username.trim()) {
+      newErrors.username = 'Kullanıcı adı gereklidir';
     }
 
     if (!formData.password) {
@@ -51,29 +49,26 @@ const Login = () => {
     }
 
     try {
-      // TODO: Replace with real API endpoint
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: formData.email,
+          username: formData.username,
           password: formData.password,
-          rememberMe: rememberMe,
         }),
       });
 
       const result = await response.json();
 
-      if (result.success) {
-        // Sadece token'ı kaydet
+      // Backend returns { status: "success" | "error", data, message }
+      if (result.status === 'success') {
         localStorage.setItem('token', result.data.token);
-
         alert('Giriş başarılı!');
         navigate('/dashboard');
       } else {
-        alert(result.error?.message || 'Giriş başarısız!');
+        alert(result.message || 'Giriş başarısız!');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -94,24 +89,24 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email */}
+          {/* Username */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              E-posta
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              Kullanıcı Adı
             </label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
               onChange={handleChange}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
+                errors.username ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="ornek@email.com"
+              placeholder="Kullanıcı adınızı girin"
             />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            {errors.username && (
+              <p className="text-red-500 text-sm mt-1">{errors.username}</p>
             )}
           </div>
 
