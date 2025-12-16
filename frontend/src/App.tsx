@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Register from './pages/Register';
+import Login from './pages/Login';
 
 function App() {
   return (
@@ -8,7 +9,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/register" element={<Register />} />
-        {/* TODO: Add more routes (login, dashboard, etc.) */}
+        <Route path="/login" element={<Login />} />
+        {/* TODO: Add more routes (dashboard, upload, etc.) */}
       </Routes>
     </BrowserRouter>
   );
