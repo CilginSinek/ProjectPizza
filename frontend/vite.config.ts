@@ -5,4 +5,17 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    port: 4000,        // ZORUNLU: DevOps requirement - 4000 olmalı
+    host: true,        // ZORUNLU: Docker için
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      }
+    }
+  },
+  build: {
+    outDir: 'dist'     // ZORUNLU: 'dist' olmalı
+  }
 })
