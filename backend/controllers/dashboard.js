@@ -25,6 +25,6 @@ async function dashboard_request(req, res) {
   return res.status(200).json({
     data: files,
     status: "succes",
-    message: "files found"
+    message: "files found",
   });
 }
