@@ -120,7 +120,7 @@ const Dashboard = () => {
     const fetchFiles = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('/api/files/list', {
+        const response = await fetch('/api/pages/dashboard', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
