@@ -1,7 +1,8 @@
-const User = require("../models/User");
 const File = require("../models/File.js");
 const Event = require("../models/Events.js");
+require("dotenv").config();
 
+const originUrl = process.env.ORIGIN_URL || "http://localhost:3000";
 async function dashboard_request(req, res) {
   try {
     const files = await File.find({ uploader: req.user._id });
@@ -21,7 +22,7 @@ async function dashboard_request(req, res) {
         downloadLimit: file.downloadLimit,
         status:
           file.downloadCount == file.downloadLimit ? "limit_reached" : "active",
-        sharedLink: "",
+        sharedLink: `${originUrl}/download/${file.downloadId}`,
       };
     });
     const event = new Event({
@@ -41,3 +42,5 @@ async function dashboard_request(req, res) {
     });
   }
 }
+
+module.exports = dashboard_request;

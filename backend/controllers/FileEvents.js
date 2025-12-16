@@ -146,6 +146,15 @@ async function downloadFile(req, res) {
     fileRecord.downloadCount += 1;
     fileRecord.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Extend expiry by 7 days on each download
     await fileRecord.save();
+    const eventLog = new Events({
+      eventType: "file_download",
+      userId: req.user._id,
+      timestamp: new Date(),
+      attachments: [fileRecord._id],
+      details: `File ${fileRecord.filename} downloaded.`,
+    });
+    await eventLog.save();
+
     res.download(readablePath, fileRecord.filename, (err) => {
       if (err) {
         return res.status(500).send({
@@ -165,73 +174,90 @@ async function downloadFile(req, res) {
 }
 
 async function getFileMetadata(req, res) {
-  const fileId = req.params.id;
-  const fileRecord = await File.findById(fileId).select("-encryption");
-  if (!fileRecord) {
-    return res.status(404).send({
-      status: "error",
-      message: "File not found.",
-      timestamp: new Date().toISOString(),
-    });
-  }
-  // Permission checks can be added here
-  if (
-    fileRecord.accesesLevel === "private" &&
-    !fileRecord.uploader.equals(req.user._id)
-  ) {
-    return res.status(403).send({
-      status: "error",
-      message: "You do not have permission to access this file metadata.",
-      timestamp: new Date().toISOString(),
-    });
-  }
-  if (
-    fileRecord.accesesLevel === "restricted" &&
-    !fileRecord.allowedUsers.includes(req.user._id)
-  ) {
-    return res.status(403).send({
-      status: "error",
-      message: "You do not have permission to access this file metadata.",
-      timestamp: new Date().toISOString(),
-    });
-  }
-  fileRecord.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  await fileRecord.save();
-  readFile(fileRecord, downloadPath + fileRecord.filename);
-  fileRecord.encryption = undefined;
-  const previewableMimeTypes = [
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-    "application/pdf",
-    "video/mp4",
-    "audio/mpeg",
-    "audio/mp3",
-  ];
-
-  if (previewableMimeTypes.includes(fileRecord.mimetype)) {
-    const absolutePath = path.resolve(downloadPath + fileRecord.filename);
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${fileRecord.filename}"`
-    );
-    res.setHeader(
-      "X-File-Metadata",
-      JSON.stringify({
-        status: "success",
-        data: fileRecord,
-        message: "File metadata retrieved successfully.",
+  try {
+    const fileId = req.params.id;
+    const fileRecord = await File.findById(fileId).select("-encryption");
+    if (!fileRecord) {
+      return res.status(404).send({
+        status: "error",
+        message: "File not found.",
         timestamp: new Date().toISOString(),
-      })
-    );
-    return res.status(200).sendFile(absolutePath);
-  }
+      });
+    }
+    // Permission checks can be added here
+    if (
+      fileRecord.accesesLevel === "private" &&
+      !fileRecord.uploader.equals(req.user._id)
+    ) {
+      return res.status(403).send({
+        status: "error",
+        message: "You do not have permission to access this file metadata.",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    if (
+      fileRecord.accesesLevel === "restricted" &&
+      !fileRecord.allowedUsers.includes(req.user._id)
+    ) {
+      return res.status(403).send({
+        status: "error",
+        message: "You do not have permission to access this file metadata.",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    fileRecord.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await fileRecord.save();
+    readFile(fileRecord, downloadPath + fileRecord.filename);
+    fileRecord.encryption = undefined;
+    const previewableMimeTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "application/pdf",
+      "video/mp4",
+      "audio/mpeg",
+      "audio/mp3",
+    ];
 
-  return res.status(200).send({
-    status: "success",
-    data: fileRecord,
-    message: "File metadata retrieved successfully.",
-    timestamp: new Date().toISOString(),
-  });
+    const eventLog = new Events({
+      eventType: "file_metadata_access",
+      userId: req.user._id,
+      timestamp: new Date(),
+      attachments: [fileRecord._id],
+      details: `Metadata for file ${fileRecord.filename} accessed.`,
+    });
+    await eventLog.save();
+
+    if (previewableMimeTypes.includes(fileRecord.mimetype)) {
+      const absolutePath = path.resolve(downloadPath + fileRecord.filename);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${fileRecord.filename}"`
+      );
+      res.setHeader(
+        "X-File-Metadata",
+        JSON.stringify({
+          status: "success",
+          data: fileRecord,
+          message: "File metadata retrieved successfully.",
+          timestamp: new Date().toISOString(),
+        })
+      );
+      return res.status(200).sendFile(absolutePath);
+    }
+
+    return res.status(200).send({
+      status: "success",
+      data: fileRecord,
+      message: "File metadata retrieved successfully.",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    return res.status(500).send({
+      status: "error",
+      message: "Failed to retrieve file metadata: " + error.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
 }

@@ -6,6 +6,7 @@ const cors = require("cors");
 const fileEventsRouter = require("./routes/fileEventsRouter");
 const authRouter = require("./routes/authRouter");
 const pageRouter = require("./routes/pageRouter");
+const fs = require("fs");
 
 const app = express();
 mongoose
@@ -28,6 +29,14 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(fileUpload());
 app.use(express.urlencoded({ extended: true }));
+
+if (fs.existsSync("./encrypted") === false) {
+  fs.mkdirSync("./encrypted");
+}
+
+if (fs.existsSync("./decrypted") === false) {
+  fs.mkdirSync("./decrypted");
+}
 
 app.get("/healthy_check", (req, res) => {
   const healthcheck = {
