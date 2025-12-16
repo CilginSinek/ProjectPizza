@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tmp-cleanup-job
+  labels:
+    app: tmp-cleanup
+spec:
+  schedule: "0 */6 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: tmp-cleanup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: cleanup
+            image: backend-app:latest
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "==================================="
+              echo "Starting TMP cleanup job..."
+              echo "Date: $(date)"
+              echo "==================================="
+              
+              if [ -d "/app/tmp" ]; then
+                echo "Checking /app/tmp directory..."
+                
+                DELETED=$(find /app/tmp -type f -mtime +1 -delete -print | wc -l)
+                
+                echo "Deleted $DELETED file(s) older than 24 hours"
+                
+                REMAINING=$(find /app/tmp -type f | wc -l)
+                echo "Remaining files in /app/tmp: $REMAINING"
+              else
+                echo "Warning: /app/tmp directory not found!"
+              fi
+              
+              echo "==================================="
+              echo "Cleanup completed at $(date)"
+              echo "==================================="
+            env:
+            - name: TMP_PATH
+              value: "/app/tmp"
+            - name: CLEANUP_HOURS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: TMP_CLEANUP_HOURS
+            resources:
+              limits:
+                memory: "128Mi"
+                cpu: "100m"
+              requests:
+                memory: "64Mi"
+                cpu: "50m"
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              allowPrivilegeEscalation: false
