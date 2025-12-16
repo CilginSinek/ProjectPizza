@@ -33,30 +33,12 @@ const Download = () => {
     const fetchFileInfo = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with real API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Mock data - Change mimeType to test different file types
-        const mockData: FileInfo = {
-          id: fileId || 'abc123',
-          name: 'Proje_Dokumani.pdf',
-          size: 2457600, // 2.4 MB
-          uploadedBy: 'user@example.com',
-          uploadedAt: new Date().toISOString(),
-          accessType: 'public',
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          downloadLimit: 5,
-          downloadCount: 2,
-          isExpired: false,
-          isLimitReached: false,
-          fileUrl: 'https://getsamplefiles.com/download/txt/sample-5.txt', // Mock URL
-          mimeType: 'text/plain', // Change to test: 'application/pdf' 'image/jpeg', 'video/mp4', 'audio/mpeg', 'text/plain'
-        };
-
-        setFileInfo(mockData);
+        const response = await fetch(import.meta.env.VITE_API_URL + '/files/metadata/' + fileId);
+        const data = await response.json();
+        setFileInfo(data.data);
 
         // If public access, auto-verify
-        if (mockData.accessType === 'public') {
+        if (data.data.accessType === 'public') {
           setIsVerified(true);
         }
       } catch (err) {
@@ -394,9 +376,8 @@ const Download = () => {
               <span className="font-medium text-gray-900">
                 {fileInfo.downloadLimit === 999
                   ? 'Sınırsız'
-                  : `${fileInfo.downloadLimit - fileInfo.downloadCount} / ${
-                      fileInfo.downloadLimit
-                    }`}
+                  : `${fileInfo.downloadLimit - fileInfo.downloadCount} / ${fileInfo.downloadLimit
+                  }`}
               </span>
             </div>
           </div>
@@ -496,11 +477,10 @@ const Download = () => {
               <button
                 onClick={handleDownload}
                 disabled={isDownloading}
-                className={`w-full py-4 rounded-xl font-bold text-lg transition shadow-lg ${
-                  isDownloading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white'
-                }`}
+                className={`w-full py-4 rounded-xl font-bold text-lg transition shadow-lg ${isDownloading
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white'
+                  }`}
               >
                 {isDownloading ? (
                   <span className="flex items-center justify-center">

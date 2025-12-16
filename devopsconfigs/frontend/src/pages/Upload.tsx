@@ -16,7 +16,6 @@ const Upload = () => {
     downloadLimit: '5',
     accessType: 'public' as 'public' | 'restricted' | 'password',
     allowedEmails: [] as string[],
-    password: '',
   });
   const [emailInput, setEmailInput] = useState('');
   const [generatedLink, setGeneratedLink] = useState<string>('');
@@ -75,24 +74,27 @@ const Upload = () => {
     });
   };
 
-  const simulateUpload = () => {
+  const UploadFile = async () => {
     if (!selectedFile) return;
 
     setIsUploading(true);
-    let progress = 0;
 
-    const interval = setInterval(() => {
-      progress += 10;
-      setSelectedFile(prev => prev ? { ...prev, progress } : null);
+    const formData = new FormData();
+    formData.append('file', selectedFile.file);
+    formData.append('accessType', shareSettings.accessType);
+    formData.append('downloadLimit', shareSettings.downloadLimit);
+    formData.append('expiryTime', shareSettings.expiryTime);
+    formData.append('allowedEmails', JSON.stringify(shareSettings.allowedEmails));
 
-      if (progress >= 100) {
-        clearInterval(interval);
-        setIsUploading(false);
-        const mockLink = `https://secureshare.app/d/${Math.random().toString(36).substring(7)}`;
-        setGeneratedLink(mockLink);
-        setSelectedFile(prev => prev ? { ...prev, uploadedUrl: mockLink } : null);
-      }
-    }, 300);
+    const response = await fetch(import.meta.env.VITE_API_URL + '/files/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await response.json();
+    setGeneratedLink(data.data.link);
+    setIsUploading(false);
+
+
   };
 
   const handleUpload = () => {
@@ -113,7 +115,7 @@ const Upload = () => {
     console.log('Uploading file:', selectedFile.file);
     console.log('Share settings:', shareSettings);
 
-    simulateUpload();
+    UploadFile();
   };
 
   const copyToClipboard = () => {
@@ -169,11 +171,10 @@ const Upload = () => {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-xl p-12 text-center transition ${
-              isDragging
-                ? 'border-indigo-500 bg-indigo-50'
-                : 'border-gray-300 hover:border-indigo-400'
-            }`}
+            className={`border-2 border-dashed rounded-xl p-12 text-center transition ${isDragging
+              ? 'border-indigo-500 bg-indigo-50'
+              : 'border-gray-300 hover:border-indigo-400'
+              }`}
           >
             {!selectedFile ? (
               <div>
@@ -263,11 +264,10 @@ const Upload = () => {
                 </label>
                 <div className="space-y-3">
                   {/* Public */}
-                  <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${
-                    shareSettings.accessType === 'public'
-                      ? 'border-indigo-600 bg-indigo-50'
-                      : 'border-gray-300 hover:border-indigo-400'
-                  }`}>
+                  <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${shareSettings.accessType === 'public'
+                    ? 'border-indigo-600 bg-indigo-50'
+                    : 'border-gray-300 hover:border-indigo-400'
+                    }`}>
                     <input
                       type="radio"
                       name="accessType"
@@ -285,11 +285,10 @@ const Upload = () => {
                   </label>
 
                   {/* Restricted */}
-                  <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${
-                    shareSettings.accessType === 'restricted'
-                      ? 'border-indigo-600 bg-indigo-50'
-                      : 'border-gray-300 hover:border-indigo-400'
-                  }`}>
+                  <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${shareSettings.accessType === 'restricted'
+                    ? 'border-indigo-600 bg-indigo-50'
+                    : 'border-gray-300 hover:border-indigo-400'
+                    }`}>
                     <input
                       type="radio"
                       name="accessType"
@@ -347,11 +346,10 @@ const Upload = () => {
                   </label>
 
                   {/* Password Protected */}
-                  <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${
-                    shareSettings.accessType === 'password'
-                      ? 'border-indigo-600 bg-indigo-50'
-                      : 'border-gray-300 hover:border-indigo-400'
-                  }`}>
+                  <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${shareSettings.accessType === 'password'
+                    ? 'border-indigo-600 bg-indigo-50'
+                    : 'border-gray-300 hover:border-indigo-400'
+                    }`}>
                     <input
                       type="radio"
                       name="accessType"
@@ -399,11 +397,10 @@ const Upload = () => {
                       onClick={() =>
                         setShareSettings({ ...shareSettings, expiryTime: option.value })
                       }
-                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${
-                        shareSettings.expiryTime === option.value
-                          ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                          : 'border-gray-300 hover:border-indigo-400'
-                      }`}
+                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${shareSettings.expiryTime === option.value
+                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                        : 'border-gray-300 hover:border-indigo-400'
+                        }`}
                     >
                       {option.label}
                     </button>
@@ -428,11 +425,10 @@ const Upload = () => {
                       onClick={() =>
                         setShareSettings({ ...shareSettings, downloadLimit: option.value })
                       }
-                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${
-                        shareSettings.downloadLimit === option.value
-                          ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                          : 'border-gray-300 hover:border-indigo-400'
-                      }`}
+                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${shareSettings.downloadLimit === option.value
+                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                        : 'border-gray-300 hover:border-indigo-400'
+                        }`}
                     >
                       {option.label}
                     </button>
@@ -444,11 +440,10 @@ const Upload = () => {
               <button
                 onClick={handleUpload}
                 disabled={isUploading}
-                className={`w-full py-3 rounded-lg font-semibold transition shadow-md ${
-                  isUploading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                }`}
+                className={`w-full py-3 rounded-lg font-semibold transition shadow-md ${isUploading
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                  }`}
               >
                 {isUploading ? 'Yükleniyor...' : 'Yükle ve Link Oluştur'}
               </button>
@@ -502,10 +497,10 @@ const Upload = () => {
                     {shareSettings.expiryTime === 'once'
                       ? 'Tek Kullanımlık'
                       : shareSettings.expiryTime === '1h'
-                      ? '1 Saat'
-                      : shareSettings.expiryTime === '24h'
-                      ? '1 Gün'
-                      : '1 Hafta'}
+                        ? '1 Saat'
+                        : shareSettings.expiryTime === '24h'
+                          ? '1 Gün'
+                          : '1 Hafta'}
                   </span>
                 </p>
                 <p>

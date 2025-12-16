@@ -49,56 +49,50 @@ async function uploadFiles(req, res) {
     });
   }
   const uploadedFiles = [];
-  const files = Array.isArray(req.files.files)
-    ? req.files.files
-    : [req.files.files];
+  const file = Array.isArray(req.files.files)
+    ? req.file.files[0]
+    : req.file.files;
 
   //* Validate file names
-  if (files.length !== req.body.fileNames.length) {
+  if (file.length !== req.body.fileNames.length) {
     return res.status(400).send({
       status: "error",
       message: "Number of files and file names do not match.",
       timestamp: new Date().toISOString(),
     });
   }
-  //! Upload each file
-  await Promise.all(
-    files.map(async (file, index) => {
-      const destinationPath = `${uploadPath}${Date.now()}_${file.name}`;
-      const encryption = await saveFile(file.data, destinationPath);
-      const newFile = new File({
-        filename: req.body.fileNames[index],
-        encryption,
-        path: destinationPath,
-        uploader: req.user._id,
-        accessLevel: req.body.accessLevel || "private",
-        size: file.size,
-        allowedUsers:
-          req.body.accessLevel === "restricted" ? req.body.allowedUsers : [],
-        downloadLimit: req.body.downloadLimit || null,
-        expiresAt:
-          req.body.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days
-        mimetype: file.mimetype,
-      });
-      await newFile.save();
-      uploadedFiles.push(newFile);
-    })
-  );
+  const destinationPath = `${uploadPath}${Date.now()}_${file.name}`;
+  const encryption = await saveFile(file.data, destinationPath);
+  const newFile = new File({
+    filename: req.body.fileNames[index],
+    encryption,
+    path: destinationPath,
+    uploader: req.user._id,
+    accessLevel: req.body.accessLevel || "private",
+    size: file.size,
+    allowedUsers:
+      req.body.accessLevel === "restricted" ? req.body.allowedUsers : [],
+    downloadLimit: req.body.downloadLimit || null,
+    expiresAt:
+      req.body.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days
+    mimetype: file.mimetype,
+  });
+  await newFile.save();
 
   // Event logging can be added here
   const eventLog = new Events({
     eventType: "file_upload",
     userId: req.user._id,
     timestamp: new Date(),
-    attachments: uploadedFiles.map((f) => f._id),
-    details: `${files.length} files uploaded.`,
+    attachments: [newFile._id],
+    details: `file uploaded.`,
   });
   await eventLog.save();
 
   return res.status(201).send({
     status: "success",
-    data: uploadedFiles,
-    message: "Files uploaded successfully.",
+    data: newFile,
+    message: "File uploaded successfully.",
     timestamp: new Date().toISOString(),
   });
 }

@@ -17,56 +17,7 @@ interface SharedFile {
 
 const Dashboard = () => {
   // Mock data
-  const [files] = useState<SharedFile[]>([
-    {
-      id: '1',
-      name: 'Proje_Sunum.pdf',
-      size: 3145728, // 3 MB
-      uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-      accessType: 'public',
-      downloadCount: 12,
-      downloadLimit: 50,
-      shareLink: 'https://secureshare.app/d/abc123',
-      status: 'active',
-    },
-    {
-      id: '2',
-      name: 'Ozel_Dokuman.docx',
-      size: 1048576, // 1 MB
-      uploadedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      expiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-      accessType: 'restricted',
-      downloadCount: 3,
-      downloadLimit: 5,
-      shareLink: 'https://secureshare.app/d/xyz456',
-      status: 'active',
-    },
-    {
-      id: '3',
-      name: 'Rapor_2024.xlsx',
-      size: 524288, // 512 KB
-      uploadedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-      expiresAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      accessType: 'password',
-      downloadCount: 8,
-      downloadLimit: 10,
-      shareLink: 'https://secureshare.app/d/def789',
-      status: 'expired',
-    },
-    {
-      id: '4',
-      name: 'Video_Demo.mp4',
-      size: 52428800, // 50 MB
-      uploadedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      expiresAt: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
-      accessType: 'public',
-      downloadCount: 5,
-      downloadLimit: 5,
-      shareLink: 'https://secureshare.app/d/ghi012',
-      status: 'limit_reached',
-    },
-  ]);
+  const [files, setFiles] = useState<SharedFile[]>();
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -121,6 +72,19 @@ const Dashboard = () => {
     expiredFiles: files.filter((f) => f.status === 'expired' || f.status === 'limit_reached')
       .length,
   };
+
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const response = await fetch(import.meta.env.VITE_API_URL + '/api/dashboard');
+        const data = await response.json();
+        setFiles(data.data);
+      } catch (error) {
+        console.error('Error fetching files:', error);
+      }
+    };
+    fetchFiles();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -243,13 +207,12 @@ const Dashboard = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          file.accessType === 'public'
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${file.accessType === 'public'
                             ? 'bg-blue-100 text-blue-800'
                             : file.accessType === 'restricted'
-                            ? 'bg-purple-100 text-purple-800'
-                            : 'bg-orange-100 text-orange-800'
-                        }`}
+                              ? 'bg-purple-100 text-purple-800'
+                              : 'bg-orange-100 text-orange-800'
+                          }`}
                       >
                         {file.accessType === 'public' && '🌍 Herkese Açık'}
                         {file.accessType === 'restricted' && '👥 Belirli Kişiler'}
@@ -262,11 +225,10 @@ const Dashboard = () => {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                         <div
-                          className={`h-1.5 rounded-full ${
-                            file.downloadCount >= file.downloadLimit
+                          className={`h-1.5 rounded-full ${file.downloadCount >= file.downloadLimit
                               ? 'bg-red-500'
                               : 'bg-green-500'
-                          }`}
+                            }`}
                           style={{
                             width: `${Math.min(
                               (file.downloadCount / file.downloadLimit) * 100,
