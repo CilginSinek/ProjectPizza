@@ -16,87 +16,100 @@ const downloadPath = "../decrypted/";
  * @returns
  */
 async function uploadFiles(req, res) {
-  //* Validation of files
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).send({
-      status: "error",
-      message: "No files were uploaded.",
-      timestamp: new Date().toISOString(),
-    });
-  }
-  //* Validation of access level
-  if (
-    req.body.accessLevel &&
-    !["public", "private", "restricted"].includes(req.body.accessLevel)
-  ) {
-    return res.status(400).send({
-      status: "error",
-      message: "Invalid access level specified.",
-      timestamp: new Date().toISOString(),
-    });
-  }
-  //* If access level is restricted, validate allowed users
-  if (
-    req.body.accessLevel === "restricted" &&
-    (!req.body.allowedUsers ||
-      !Array.isArray(req.body.allowedUsers) ||
-      req.body.allowedUsers.length === 0)
-  ) {
-    return res.status(400).send({
-      status: "error",
-      message: "Allowed users must be specified for restricted access level.",
-      timestamp: new Date().toISOString(),
-    });
-  }
-  const file = req.files;
+  try {
+    //* Validation of files
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).send({
+        status: "error",
+        message: "No files were uploaded.",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    //* Validation of access level
+    if (
+      req.body.accessLevel &&
+      !["public", "private", "restricted"].includes(req.body.accessLevel)
+    ) {
+      return res.status(400).send({
+        status: "error",
+        message: "Invalid access level specified.",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    //* If access level is restricted, validate allowed users
+    if (
+      req.body.accessLevel === "restricted" &&
+      (!req.body.allowedUsers ||
+        !Array.isArray(req.body.allowedUsers) ||
+        req.body.allowedUsers.length === 0)
+    ) {
+      return res.status(400).send({
+        status: "error",
+        message: "Allowed users must be specified for restricted access level.",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    const files = req.files;
 
-  if(typeof req.body.fileName === 'string' && req.body.fileName.length > 0){
-    return res.status(400).send({
+    //* Validate file names
+    if (!req.body.fileName || typeof req.body.fileName !== "string" || req.body.fileName.length === 0) {
+      return res.status(400).send({
+        status: "error",
+        message: "fileName must be a non-empty string.",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    
+    // Tek dosya işleme (çoklu dosya için bu fonksiyon genişletilebilir)
+    const file = Array.isArray(files) ? files[0] : files;
+    
+    const destinationPath = `${uploadPath}${Date.now()}_${req.body.fileName}`;
+    const encryption = await saveFile(file.data, destinationPath);
+    const newFile = new File({
+      filename: req.body.fileName,
+      encryption,
+      path: destinationPath,
+      uploader: req.user._id,
+      accessLevel: req.body.accessLevel || "private",
+      size: file.size,
+      allowedUsers:
+        req.body.accessLevel === "restricted" ? req.body.allowedUsers : [],
+      downloadLimit: req.body.downloadLimit || null,
+      expiresAt:
+        req.body.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days
+      mimetype: file.mimetype,
+    });
+    await newFile.save();
+
+    // Event logging can be added here
+    const eventLog = new Events({
+      eventType: "file_upload",
+      userId: req.user._id,
+      timestamp: new Date(),
+      attachments: [newFile._id],
+      details: `file uploaded.`,
+    });
+    await eventLog.save();
+
+    return res.status(201).send({
+      status: "success",
+      data: newFile,
+      message: "File uploaded successfully.",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    return res.status(500).send({
       status: "error",
-      message: "fileName must be a string filename.",
+      message: "File upload failed: " + error.message,
       timestamp: new Date().toISOString(),
     });
   }
-  const destinationPath = `${uploadPath}${Date.now()}_${file.name}`;
-  const encryption = await saveFile(file.data, destinationPath);
-  const newFile = new File({
-    filename: req.body.fileNames[0],
-    encryption,
-    path: destinationPath,
-    uploader: req.user._id,
-    accessLevel: req.body.accessLevel || "private",
-    size: file.size,
-    allowedUsers:
-      req.body.accessLevel === "restricted" ? req.body.allowedUsers : [],
-    downloadLimit: req.body.downloadLimit || null,
-    expiresAt:
-      req.body.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days
-    mimetype: file.mimetype,
-  });
-  await newFile.save();
-
-  // Event logging can be added here
-  const eventLog = new Events({
-    eventType: "file_upload",
-    userId: req.user._id,
-    timestamp: new Date(),
-    attachments: [newFile._id],
-    details: `file uploaded.`,
-  });
-  await eventLog.save();
-
-  return res.status(201).send({
-    status: "success",
-    data: newFile,
-    message: "File uploaded successfully.",
-    timestamp: new Date().toISOString(),
-  });
 }
 
 async function downloadFile(req, res) {
   try {
     const fileId = parseInt(req.params.id);
-    const fileRecord = await File.findById(fileId).select("-encryption");
+    const fileRecord = await File.findById(fileId);
     if (!fileRecord) {
       return res.status(404).send({
         status: "error",
@@ -106,7 +119,7 @@ async function downloadFile(req, res) {
     }
     // Permission checks can be added here
     if (
-      fileRecord.accesesLevel === "private" &&
+      fileRecord.accessLevel === "private" &&
       !fileRecord.uploader.equals(req.user._id)
     ) {
       return res.status(403).send({
@@ -116,7 +129,7 @@ async function downloadFile(req, res) {
       });
     }
     if (
-      fileRecord.accesesLevel === "restricted" &&
+      fileRecord.accessLevel === "restricted" &&
       !fileRecord.allowedUsers.includes(req.user._id)
     ) {
       return res.status(403).send({
@@ -166,7 +179,7 @@ async function downloadFile(req, res) {
 async function getFileMetadata(req, res) {
   try {
     const fileId = parseInt(req.params.id);
-    const fileRecord = await File.findById(fileId).select("-encryption");
+    const fileRecord = await File.findById(fileId);
     if (!fileRecord) {
       return res.status(404).send({
         status: "error",
@@ -176,7 +189,7 @@ async function getFileMetadata(req, res) {
     }
     // Permission checks can be added here
     if (
-      fileRecord.accesesLevel === "private" &&
+      fileRecord.accessLevel === "private" &&
       !fileRecord.uploader.equals(req.user._id)
     ) {
       return res.status(403).send({
@@ -186,7 +199,7 @@ async function getFileMetadata(req, res) {
       });
     }
     if (
-      fileRecord.accesesLevel === "restricted" &&
+      fileRecord.accessLevel === "restricted" &&
       !fileRecord.allowedUsers.includes(req.user._id)
     ) {
       return res.status(403).send({
@@ -198,7 +211,11 @@ async function getFileMetadata(req, res) {
     fileRecord.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await fileRecord.save();
     await readFile(fileRecord, downloadPath + fileRecord.filename);
-    fileRecord.encryption = undefined;
+    
+    // Encryption bilgisini response'dan çıkar (güvenlik)
+    const fileData = fileRecord.toObject();
+    delete fileData.encryption;
+    
     const previewableMimeTypes = [
       "image/jpeg",
       "image/png",
@@ -229,7 +246,7 @@ async function getFileMetadata(req, res) {
         "X-File-Metadata",
         JSON.stringify({
           status: "success",
-          data: fileRecord,
+          data: fileData,
           message: "File metadata retrieved successfully.",
           timestamp: new Date().toISOString(),
         })
@@ -239,7 +256,7 @@ async function getFileMetadata(req, res) {
 
     return res.status(200).send({
       status: "success",
-      data: fileRecord,
+      data: fileData,
       message: "File metadata retrieved successfully.",
       timestamp: new Date().toISOString(),
     });
