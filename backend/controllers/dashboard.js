@@ -22,7 +22,7 @@ async function dashboard_request(req, res) {
         downloadLimit: file.downloadLimit,
         status:
           file.downloadCount == file.downloadLimit ? "limit_reached" : "active",
-        sharedLink: `${originUrl}/download/${file.downloadId}`,
+        sharedLink: `${originUrl}/api/download/${file.downloadId}`,
       };
     });
     const event = new Event({
