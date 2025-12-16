@@ -17,7 +17,7 @@ async function authMiddleware(req, res, next) {
     }
     next();
   } catch (err) {
-    return res.status(401).json({ status: "error", message: "Unauthorized" });
+    return res.status(401).json({ status: "error", message: "Unauthorized with error: " + err.message });
   }
 }
 
