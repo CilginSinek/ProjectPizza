@@ -9,5 +9,8 @@ router
 router
   .route("/metadata/:id")
   .get(authMiddleware, fileEventsController.getFileMetadata);
+router
+  .route("/delete/:id")
+  .delete(authMiddleware, fileEventsController.deleteFile);
 
 module.exports = router;

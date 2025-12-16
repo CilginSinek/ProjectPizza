@@ -105,7 +105,7 @@ async function uploadFiles(req, res) {
 
 async function downloadFile(req, res) {
   try {
-    const fileId = req.params.id;
+    const fileId = parseInt(req.params.id);
     const fileRecord = await File.findById(fileId).select("-encryption");
     if (!fileRecord) {
       return res.status(404).send({
@@ -175,7 +175,7 @@ async function downloadFile(req, res) {
 
 async function getFileMetadata(req, res) {
   try {
-    const fileId = req.params.id;
+    const fileId = parseInt(req.params.id);
     const fileRecord = await File.findById(fileId).select("-encryption");
     if (!fileRecord) {
       return res.status(404).send({
@@ -262,8 +262,51 @@ async function getFileMetadata(req, res) {
   }
 }
 
+async function deleteFile(req, res) {
+  try {
+    const fileId = parseInt(req.params.id);
+    const fileRecord = await File.findById(fileId);
+    if (!fileRecord) {
+      return res.status(404).send({
+        status: "error",
+        message: "File not found.",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    // Permission checks can be added here
+    if (!fileRecord.uploader.equals(req.user._id)) {
+      return res.status(403).send({
+        status: "error",
+        message: "You do not have permission to delete this file.",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    await fileRecord.remove();
+    const eventLog = new Events({
+      eventType: "file_deletion",
+      userId: req.user._id,
+      timestamp: new Date(),
+      attachments: [fileRecord._id],
+      details: `File ${fileRecord.filename} deleted.`,
+    });
+    await eventLog.save();
+    return res.status(200).send({
+      status: "success",
+      message: "File deleted successfully.",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    return res.status(500).send({
+      status: "error",
+      message: "File deletion failed: " + error.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
+}
+
 module.exports = {
   uploadFiles,
   downloadFile,
   getFileMetadata,
+  deleteFile,
 };
