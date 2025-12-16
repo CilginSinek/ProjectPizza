@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const jsonWebToken = require("jsonwebtoken");
+require("dotenv").config();
 
 async function login(req, res) {
   const { username, password } = req.body;
