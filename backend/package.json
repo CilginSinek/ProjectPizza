@@ -15,6 +15,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-fileupload": "^1.5.2",
+    "jsonwebtoken": "^9.0.3",
     "moongose": "^1.0.0"
   }
 }
