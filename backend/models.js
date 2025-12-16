@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const bcrypt = require("bcrypt");
 
 const userSchema = new Schema({
   username: { type: String, required: true, unique: true },
@@ -8,6 +9,15 @@ const userSchema = new Schema({
   role: { type: String, enum: ["user", "admin"], default: "user" },
   createdAt: { type: Date, default: Date.now },
 });
+
+User.schema.methods.setPassword = async function (password) {
+  const salt = await bcrypt.genSalt(10);
+  this.passwordHash = await bcrypt.hash(password, salt);
+};
+
+User.schema.methods.validatePassword = async function (password) {
+  return bcrypt.compare(password, this.passwordHash);
+};
 
 const fileSchema = new Schema({
   filename: { type: String, required: true },
