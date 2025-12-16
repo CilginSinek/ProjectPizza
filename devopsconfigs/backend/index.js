@@ -26,9 +26,13 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-app.use(express.json());
-app.use(fileUpload());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  abortOnLimit: true,
+  responseOnLimit: 'File size limit exceeded (max 50MB)'
+}));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 if (fs.existsSync("./encrypted") === false) {
   fs.mkdirSync("./encrypted");
