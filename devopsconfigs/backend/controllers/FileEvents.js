@@ -48,10 +48,7 @@ async function uploadFiles(req, res) {
       timestamp: new Date().toISOString(),
     });
   }
-  const uploadedFiles = [];
-  const file = Array.isArray(req.files.files)
-    ? req.file.files[0]
-    : req.file.files;
+  const file = req.files;
 
   //* Validate file names
   if (file.length !== req.body.fileNames.length) {
@@ -64,7 +61,7 @@ async function uploadFiles(req, res) {
   const destinationPath = `${uploadPath}${Date.now()}_${file.name}`;
   const encryption = await saveFile(file.data, destinationPath);
   const newFile = new File({
-    filename: req.body.fileNames[index],
+    filename: req.body.fileNames[0],
     encryption,
     path: destinationPath,
     uploader: req.user._id,
