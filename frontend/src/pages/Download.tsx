@@ -49,8 +49,8 @@ const Download = () => {
           downloadCount: 2,
           isExpired: false,
           isLimitReached: false,
-          fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', // Mock URL
-          mimeType: 'application/pdf', // Change to test: 'image/jpeg', 'video/mp4', 'audio/mpeg', 'text/plain'
+          fileUrl: 'https://getsamplefiles.com/download/txt/sample-5.txt', // Mock URL
+          mimeType: 'text/plain', // Change to test: 'application/pdf' 'image/jpeg', 'video/mp4', 'audio/mpeg', 'text/plain'
         };
 
         setFileInfo(mockData);
