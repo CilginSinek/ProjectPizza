@@ -14,7 +14,33 @@ const fileSchema = new Schema({
   uploadedAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   expiresAt: { type: Date, required: true },
+  encryption: {
+    wrappedKey: {
+      type: Buffer,
+      required: true,
+    },
+
+    keyIv: {
+      type: Buffer,
+      required: true,
+    },
+
+    keyAuthTag: {
+      type: Buffer,
+      required: true,
+    },
+
+    fileIv: {
+      type: Buffer,
+      required: true,
+    },
+
+    fileAuthTag: {
+      type: Buffer,
+      required: true,
+    },
+  },
 });
 
 const File = mongoose.model("File", fileSchema);
-export default File;
+module.exports = File;

@@ -10,4 +10,4 @@ const eventLogSchema = new Schema({
 });
 
 const EventLog = mongoose.model("EventLog", eventLogSchema);
-export default EventLog;
+module.exports = EventLog;
