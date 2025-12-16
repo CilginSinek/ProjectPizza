@@ -1,24 +1,8 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { getCurrentUser, isAuthenticated, logout } from '../utils/auth';
-
-interface User {
-  username: string;
-}
+import { isAuthenticated, logout } from '../utils/auth';
 
 const Landing = () => {
-  const [user, setUser] = useState<User | null>(null);
   const isAuth = isAuthenticated();
-
-  useEffect(() => {
-    if (isAuth) {
-      getCurrentUser().then(userData => {
-        if (userData) {
-          setUser(userData);
-        }
-      });
-    }
-  }, [isAuth]);
 
   const handleLogout = () => {
     logout();
@@ -36,9 +20,7 @@ const Landing = () => {
             <div className="flex gap-4 items-center">
               {isAuth ? (
                 <>
-                  <span className="text-gray-700 mr-2">
-                    Hoşgeldin, <span className="font-semibold">{user?.username}</span>
-                  </span>
+                  <span className="text-gray-700 mr-2">Hoşgeldin!</span>
                   <Link
                     to="/dashboard"
                     className="px-4 py-2 text-indigo-600 hover:text-indigo-800 transition"
