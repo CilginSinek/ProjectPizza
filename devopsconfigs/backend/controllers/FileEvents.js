@@ -17,7 +17,7 @@ const downloadPath = "../decrypted/";
  */
 async function uploadFiles(req, res) {
   //* Validation of files
-  if (!req.files || Object.keys(req.files).length === 0) {
+  if (!req.files || req.files.length === 0) {
     return res.status(400).send({
       status: "error",
       message: "No files were uploaded.",
