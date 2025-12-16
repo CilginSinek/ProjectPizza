@@ -1,8 +1,7 @@
 const fs = require("fs");
-const path = require("path");
 const crypto = require("crypto");
 
-const fileEncrypt = async (input, output, key) => {
+const fileEncrypt = (input, output, key) => {
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
   fs.createReadStream(input).pipe(cipher).pipe(fs.createWriteStream(output));
@@ -10,7 +9,7 @@ const fileEncrypt = async (input, output, key) => {
   return { iv, authTag };
 };
 
-const fileDecrypt = async (input, output, key, iv, authTag) => {
+const fileDecrypt = (input, output, key, iv, authTag) => {
   const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
   decipher.setAuthTag(authTag);
   fs.createReadStream(input).pipe(decipher).pipe(fs.createWriteStream(output));

@@ -17,6 +17,7 @@ const fileSchema = new Schema({
   uploadedAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   expiresAt: { type: Date, required: true },
+  mimetype: { type: String, required: true },
   encryption: {
     wrappedKey: {
       type: Buffer,

@@ -1,3 +1,6 @@
+const { fileDecrypt, keyDecrypt } = require("./crypting");
+const masterKey = Buffer.from(process.env.MASTER_KEY, "hex");
+
 const readFile = (myfile, readablePath) => {
   const decrptedkey = keyDecrypt(
     myfile.encryption.wrappedKey,
