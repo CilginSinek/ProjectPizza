@@ -4,8 +4,8 @@ const readFile = require("../utils/readFile");
 const saveFile = require("../utils/saveFile");
 const path = require("path");
 
-const uploadPath = "../encrypted/";
-const downloadPath = "../decrypted/";
+const uploadPath = path.join(__dirname, "../../encrypted/");
+const downloadPath = path.join(__dirname, "../../decrypted/");
 
 /**
  * @brief Handles file upload requests.

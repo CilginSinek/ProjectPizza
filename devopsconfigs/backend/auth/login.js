@@ -23,7 +23,7 @@ async function login(req, res) {
     const token = jsonWebToken.sign(
       { id: user._id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "7h" }
     );
     return res.json({
       data: { token: token },
