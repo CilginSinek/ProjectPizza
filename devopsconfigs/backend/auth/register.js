@@ -1,4 +1,4 @@
-const { User, findById } = require("../models/User");
+const User = require("../models/User");
 const jsonWebToken = require("jsonwebtoken");
 
 require("dotenv").config();

@@ -23,7 +23,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: ./devopsconfigs/backend/Dockerfile
+      dockerfile: ./Dockerfile
     container_name: pizza-backend
     restart: unless-stopped
     ports:
@@ -34,7 +34,7 @@ services:
       MONGODB_URI: mongodb://mongodb:27017/projectpizza
       JWT_SECRET: your_jwt_secret_key
       MASTER_KEY: your_master_key
-      CORS_ORIGIN: http://localhost:4000
+      CORS_ORIGIN: http://localhost:8080
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -45,7 +45,7 @@ services:
     networks:
       - pizza-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -54,15 +54,16 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: ./devopsconfigs/frontend/Dockerfile
+      dockerfile: ./Dockerfile
     container_name: pizza-frontend
     restart: unless-stopped
     ports:
-      - "4000:80"
+      - "8080:80"
     environment:
-      VITE_API_URL: http://localhost:3000
+      VITE_API_URL: http://backend:3000
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - pizza-network
     healthcheck:

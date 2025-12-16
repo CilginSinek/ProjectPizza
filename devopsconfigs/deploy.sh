@@ -77,8 +77,8 @@ kubectl get cronjob -n $NAMESPACE
 
 echo ""
 echo -e "${GREEN}Access URLs:${NC}"
-echo -e "Frontend: ${GREEN}http://localhost:30002${NC}"
-echo -e "Backend:  ${GREEN}http://localhost:30001${NC}"
+echo -e "Frontend: ${GREEN}http://localhost (LoadBalancer)${NC}"
+echo -e "Backend:  ${GREEN}http://localhost/api (via Nginx)${NC}"
 echo ""
 echo -e "${YELLOW}To check logs:${NC}"
 echo "kubectl logs -f deployment/devopsconfigs/backend -n $NAMESPACE"

@@ -10,7 +10,7 @@ const userSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-userSchema.on("save", function (next) {
+userSchema.pre("save", function (next) {
   if (this.isModified("password")) {
     bcrypt.genSalt(10, (err, salt) => {
       if (err) return next(err);

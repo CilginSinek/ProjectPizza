@@ -63,13 +63,12 @@ metadata:
   name: frontend-service
   namespace: pizza-app
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: frontend
   ports:
   - port: 80
     targetPort: 8080
-    nodePort: 30002
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler

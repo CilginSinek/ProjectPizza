@@ -18,11 +18,11 @@ mongoose
   .catch((err) => console.log(err));
 
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  origin: process.env.CORS_ORIGIN || "http://localhost:8080", // credentials: true ile * kullanılamaz
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   optionsSuccessStatus: 200,
   credentials: true,
-  allowedHeaders: "Content-Type",
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 };
 app.use(cors(corsOptions));
 

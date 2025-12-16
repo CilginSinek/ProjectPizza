@@ -1,20 +1,31 @@
+# --- Stage 1: Builder ---
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# 1. ADIM: Sadece paket dosyalarini kopyala (Cache'i kullanabilmek icin)
+COPY package*.json ./
+
+# 2. ADIM: Paketleri yukle (package.json degismedigi surece burasi CACHE'den gelir, cok hizli gecer)
+RUN npm install
+
+# 3. ADIM: Simdi kaynak kodlari kopyala (Kod degisince sadece burasi ve sonrasi calisir)
 COPY . .
 
-RUN if [ -f package.json ]; then npm install && npm run build; fi
+# 4. ADIM: Build al (API URL'i iceri gomerek)
+RUN VITE_API_URL=http://localhost:3000 npm run build
 
+# --- Stage 2: Production (Nginx) ---
 FROM nginx:alpine
 
+# Builder asamasindan cikan 'dist' klasorunu al
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# Nginx ayarini kopyala
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:8080/ || exit 1
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --retries=3   CMD wget --quiet --tries=1 --spider http://localhost:80/ || exit 1
 
-EXPOSE 8080
-#! buda sonra ayarlanıcak
+EXPOSE 80
 
-CMD [ "nginx", "-g", "daemon off;" ]
+CMD ["nginx", "-g", "daemon off;"]
