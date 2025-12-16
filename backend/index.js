@@ -7,6 +7,8 @@ mongoose.connect('mongodb://localhost:27017/myapp', { useNewUrlParser: true, use
   .catch(err => console.log(err));
 
 app.use(express.json());
+app.use(fileUpload());
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
