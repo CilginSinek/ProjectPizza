@@ -2,7 +2,7 @@
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from '../config/api';
-import { getAuthHeader } from '../utils/auth';
+import { getAuthHeader, removeToken } from '../utils/auth';
 
 // Backend response format: { status: "success" | "error", data?: any, message?: string }
 export interface ApiResponse<T = any> {
@@ -40,6 +40,14 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     console.error('API request failed:', error);
+
+    // Handle 401 Unauthorized
+    if (error.response && error.response.status === 401) {
+      removeToken();
+      window.location.href = '/login';
+    }
+
+    // Return consistent error structure
     return {
       status: 'error',
       message: error.response?.data?.message || 'Network error. Please try again.',

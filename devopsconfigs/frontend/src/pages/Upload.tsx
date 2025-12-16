@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { logout } from '../utils/auth';
 
 interface UploadedFile {
@@ -9,7 +9,7 @@ interface UploadedFile {
 }
 
 const Upload = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Removed unused navigation
   const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [shareSettings, setShareSettings] = useState({
@@ -82,11 +82,31 @@ const Upload = () => {
     setIsUploading(true);
 
     const formData = new FormData();
-    formData.append('file', selectedFile.file);
-    formData.append('accessType', shareSettings.accessType);
-    formData.append('downloadLimit', shareSettings.downloadLimit);
-    formData.append('expiryTime', shareSettings.expiryTime);
-    formData.append('allowedEmails', JSON.stringify(shareSettings.allowedEmails));
+    // Backend expects 'files' field for the file data
+    formData.append('files', selectedFile.file);
+    
+    // Backend expects 'fileNames' array. Using [] ensures it's parsed as an array by Express (extended: true)
+    formData.append('fileNames[]', selectedFile.file.name); 
+
+    formData.append('accessLevel', shareSettings.accessType); // Backend expects 'accessLevel'
+    formData.append('downloadLimit', shareSettings.downloadLimit === 'unlimited' ? '999' : shareSettings.downloadLimit);
+    
+    // Calculate expiresAt
+    const now = new Date();
+    let expiryDate = new Date();
+    switch (shareSettings.expiryTime) {
+      case '1h': expiryDate.setHours(now.getHours() + 1); break;
+      case '24h': expiryDate.setDate(now.getDate() + 1); break;
+      case '7d': expiryDate.setDate(now.getDate() + 7); break;
+      case 'once': expiryDate.setDate(now.getDate() + 7); break; // Default long expiry, limit handles 'once'
+      default: expiryDate.setDate(now.getDate() + 1);
+    }
+    formData.append('expiresAt', expiryDate.toISOString());
+    
+    // Backend expects 'allowedUsers' (IDs mostly, but we send emails as placeholder since we can't map to IDs easily)
+    if (shareSettings.allowedEmails.length > 0) {
+        shareSettings.allowedEmails.forEach(email => formData.append('allowedUsers[]', email));
+    }
 
     const token = localStorage.getItem('token');
     const response = await fetch('/api/files/upload', {
@@ -97,10 +117,20 @@ const Upload = () => {
       body: formData,
     });
     const data = await response.json();
-    setGeneratedLink(data.data.link);
-    setIsUploading(false);
-    alert('Dosya başarıyla yüklendi! Dashboard\'a yönlendiriliyorsunuz.');
-    navigate('/dashboard');
+    
+    if (data.status === 'success' && data.data) {
+        // Construct link using the file ID from response
+        const fileId = data.data._id;
+        // Adjust this URL to match your frontend routing or direct API download link
+        const link = `${window.location.origin}/download/${fileId}`; 
+        setGeneratedLink(link);
+        setIsUploading(false);
+        alert('Dosya başarıyla yüklendi!');
+        // Optional: navigate('/dashboard'); // Let user see the link first
+    } else {
+        setIsUploading(false);
+        alert('Yükleme başarısız: ' + (data.message || 'Bilinmeyen hata'));
+    }
 
 
   };

@@ -41,12 +41,34 @@ const Download = () => {
           }
         });
         const data = await response.json();
-        setFileInfo(data.data);
+        
+        // Map backend data to frontend FileInfo interface
+        if (data.status === 'success' && data.data) {
+          const file = data.data;
+          const mappedInfo: FileInfo = {
+            id: file._id,
+            name: file.filename,
+            size: file.size,
+            uploadedBy: file.uploader || 'Unknown', // Backend returns ID, name not available in this endpoint usually
+            uploadedAt: file.createdAt || file.uploadedAt || new Date().toISOString(),
+            accessType: file.accessLevel || 'private',
+            expiresAt: file.expiresAt,
+            downloadLimit: file.downloadLimit || 999,
+            downloadCount: file.downloadCount || 0,
+            isExpired: new Date(file.expiresAt) < new Date(),
+            isLimitReached: (file.downloadCount || 0) >= (file.downloadLimit || 999),
+            fileUrl: '', // Will be handled dynamically
+            mimeType: file.mimetype
+          };
+          setFileInfo(mappedInfo);
 
-        // If public access, auto-verify
-        if (data.data.accessType === 'public') {
-          setIsVerified(true);
+          if (mappedInfo.accessType === 'public') {
+            setIsVerified(true);
+          }
+        } else {
+             setError('Dosya bulunamadı.');
         }
+
       } catch (err) {
         setError('Dosya bulunamadı veya erişim sağlanamadı.');
       } finally {
@@ -102,15 +124,8 @@ const Download = () => {
       return;
     }
 
-    // TODO: API call to verify email
-    console.log('Verifying email:', emailInput);
-
-    // Mock verification
-    if (emailInput === 'allowed@example.com') {
-      setIsVerified(true);
-    } else {
-      alert('Bu e-posta adresi dosyaya erişim yetkisine sahip değil!');
-    }
+    console.log('Email verification requested for:', emailInput);
+    alert('Bu özellik şu an bakım aşamasındadır. Lütfen daha sonra tekrar deneyiniz.');
   };
 
   const handlePasswordVerification = () => {
@@ -119,42 +134,46 @@ const Download = () => {
       return;
     }
 
-    // TODO: API call to verify password
-    console.log('Verifying password:', passwordInput);
-
-    // Mock verification
-    if (passwordInput === '123456') {
-      setIsVerified(true);
-    } else {
-      alert('Yanlış şifre!');
-    }
+    console.log('Password verification requested');
+    alert('Bu özellik şu an bakım aşamasındadır. Lütfen daha sonra tekrar deneyiniz.');
   };
 
   const handleDownload = async () => {
+
     if (!isVerified || !fileInfo) return;
 
     setIsDownloading(true);
 
     try {
-      // TODO: Real download API call
-      console.log('Downloading file:', fileInfo.id);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const token = localStorage.getItem('token');
+      // Real API call for download
+      const response = await fetch(`/api/files/download/${fileInfo.id}`, {
+          method: 'GET',
+          headers: {
+             'Authorization': `Bearer ${token}`
+          }
+      });
 
-      // Simulate download
+      if (!response.ok) throw new Error('Download failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = fileInfo.fileUrl;
+      link.href = url;
       link.download = fileInfo.name;
       document.body.appendChild(link);
       link.click();
+      window.URL.revokeObjectURL(url);
       document.body.removeChild(link);
 
-      // Update download count
+      // Update download count locally
       setFileInfo({
         ...fileInfo,
         downloadCount: fileInfo.downloadCount + 1,
       });
     } catch (err) {
       alert('İndirme sırasında bir hata oluştu!');
+      console.error(err);
     } finally {
       setIsDownloading(false);
     }
@@ -232,13 +251,9 @@ const Download = () => {
           {fileType === 'text' && (
             <div className="p-4 max-h-96 overflow-y-auto">
               <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono bg-gray-50 p-4 rounded">
-                {/* Mock text content */}
-                Bu bir metin dosyası önizlemesidir.
-
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-                Gerçek API entegrasyonunda buraya dosya içeriği gelecek.
+                {/* Content fetching would go here */}
+                Metin önizlemesi şu an için görüntülenemiyor.
+                Lütfen dosyayı indirerek inceleyiniz.
               </pre>
             </div>
           )}

@@ -10,7 +10,7 @@ export const API_ENDPOINTS = {
   // File endpoints
   FILE_UPLOAD: '/api/files/upload',
   FILE_DOWNLOAD: '/api/files/download',
-  FILE_LIST: '/api/files',
+  FILE_LIST: '/api/pages/dashboard',
   FILE_DELETE: '/api/files',
   FILE_INFO: '/api/files',
 } as const;
