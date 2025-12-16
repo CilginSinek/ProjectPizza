@@ -261,3 +261,9 @@ async function getFileMetadata(req, res) {
     });
   }
 }
+
+module.exports = {
+  uploadFiles,
+  downloadFile,
+  getFileMetadata,
+};
