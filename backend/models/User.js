@@ -5,19 +5,29 @@ const bcrypt = require("bcrypt");
 const userSchema = new Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
-  passwordHash: { type: String, required: true },
+  password: { type: String, required: true },
   role: { type: String, enum: ["user", "admin"], default: "user" },
   createdAt: { type: Date, default: Date.now },
 });
 
-userSchema.methods.setPassword = async function (password) {
-  const salt = await bcrypt.genSalt(10);
-  this.passwordHash = await bcrypt.hash(password, salt);
-};
+userSchema.on("save", function (next) {
+  if (this.isModified("password")) {
+    bcrypt.genSalt(10, (err, salt) => {
+      if (err) return next(err);
+      bcrypt.hash(this.password, salt, (err, hash) => {
+        if (err) return next(err);
+        this.password = hash;
+        next();
+      });
+    });
+  } else {
+    next();
+  }
+});
 
 userSchema.methods.validatePassword = async function (password) {
-  return bcrypt.compare(password, this.passwordHash);
+  return bcrypt.compare(password, this.password);
 };
 
 const User = mongoose.model("User", userSchema);
-export default User;
+module.exports = User;
