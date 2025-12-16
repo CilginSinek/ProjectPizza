@@ -1,5 +1,7 @@
 #get alphine image an build
 FROM node:20-alpine AS builder
+RUN apk add --no-cache bash
+RUN apk add --no-cache bash
 WORKDIR /app
 
 COPY package*.json ./
@@ -9,6 +11,8 @@ COPY  . .
 RUN npm install --only=production
 
 FROM node:20-alpine
+RUN apk add --no-cache bash
+RUN apk add --no-cache bash
 WORKDIR /app
 
 COPY --from=builder /app .
@@ -23,4 +27,4 @@ USER node
 EXPOSE 3000 
 #! daha sonra ayarlanıcak
 
-CMD ["node", "src/index.js"]
+CMD ["node", "index.js"]

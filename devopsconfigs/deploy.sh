@@ -43,13 +43,13 @@ echo "Waiting for MongoDB to be ready..."
 kubectl wait --for=condition=ready pod -l app=mongodb -n $NAMESPACE --timeout=120s
 
 echo "Deploying Backend..."
-kubectl apply -f ./devopsconfigs/backend/devopsconfigs/backend.yaml -n $NAMESPACE
+kubectl apply -f ./devopsconfigs/backend/backend.yaml -n $NAMESPACE
 
 echo "Waiting for Backend to be ready..."
-kubectl wait --for=condition=ready pod -l app=devopsconfigs/backend -n $NAMESPACE --timeout=120s
+kubectl wait --for=condition=ready pod -l app=backend -n $NAMESPACE --timeout=120s
 
 echo "Deploying Frontend..."
-kubectl apply -f ./devopsconfigs/frontend/devopsconfigs/frontend.yaml -n $NAMESPACE
+kubectl apply -f ./devopsconfigs/frontend/frontend.yaml -n $NAMESPACE
 
 echo "Deploying CronJob..."
 kubectl apply -f ./devopsconfigs/k8s-manifests/03-cronjob-cleanup.yaml -n $NAMESPACE

@@ -38,6 +38,8 @@ if (fs.existsSync("./decrypted") === false) {
   fs.mkdirSync("./decrypted");
 }
 
+app.get("/health", (req, res) => { res.status(200).send("OK"); });
+
 app.get("/healthy_check", (req, res) => {
   const healthcheck = {
     uptime: process.uptime(),
