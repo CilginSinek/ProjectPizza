@@ -16,7 +16,6 @@ interface SharedFile {
 }
 
 const Dashboard = () => {
-  // Mock data
   const [files, setFiles] = useState<SharedFile[]>([]);
 
   const formatFileSize = (bytes: number) => {
@@ -132,7 +131,22 @@ const Dashboard = () => {
         }
 
         const data = await response.json();
-        setFiles(data.data || []);
+        
+        // Map backend data to frontend interface
+        const mappedFiles = (data.data || []).map((file: any) => ({
+          id: file._id,
+          name: file.filename,
+          size: file.size,
+          uploadedAt: file.uploadedAt || file.createdAt,
+          expiresAt: file.expiresAt,
+          accessType: file.accessLevel || 'private', // Backend uses accessLevel
+          downloadCount: file.downloadCount,
+          downloadLimit: file.downloadLimit || 999, // Fallback
+          shareLink: `${window.location.origin}/download/${file._id}`, // Frontend route for download or direct API link
+          status: (file.downloadCount >= (file.downloadLimit || 999)) ? 'limit_reached' : 'active' // Simple status logic
+        }));
+
+        setFiles(mappedFiles);
       } catch (error) {
         console.error('Error fetching files:', error);
         setFiles([]);
