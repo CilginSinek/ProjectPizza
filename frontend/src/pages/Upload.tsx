@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { logout } from '../utils/auth';
 
 interface UploadedFile {
   file: File;
@@ -144,7 +145,10 @@ const Upload = () => {
               >
                 Dashboard
               </Link>
-              <button className="px-4 py-2 text-gray-700 hover:text-indigo-600 transition">
+              <button
+                onClick={logout}
+                className="px-4 py-2 text-gray-700 hover:text-indigo-600 transition"
+              >
                 Çıkış Yap
               </button>
             </div>

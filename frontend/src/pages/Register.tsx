@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -62,9 +63,35 @@ const Register = () => {
       return;
     }
 
-    // TODO: API call to register user
-    console.log('Register:', formData);
-    alert('Kayıt başarılı! (API entegrasyonu yapılacak)');
+    try {
+      // TODO: Replace with real API endpoint
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Sadece token'ı kaydet
+        localStorage.setItem('token', result.data.token);
+
+        alert('Kayıt başarılı!');
+        navigate('/dashboard');
+      } else {
+        alert(result.error?.message || 'Kayıt başarısız!');
+      }
+    } catch (error) {
+      console.error('Register error:', error);
+      alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+    }
   };
 
   return (

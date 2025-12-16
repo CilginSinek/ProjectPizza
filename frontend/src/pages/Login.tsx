@@ -50,12 +50,35 @@ const Login = () => {
       return;
     }
 
-    // TODO: API call to login user
-    console.log('Login:', formData, 'Remember me:', rememberMe);
+    try {
+      // TODO: Replace with real API endpoint
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          rememberMe: rememberMe,
+        }),
+      });
 
-    // Simulated successful login - redirect to dashboard
-    alert('Giriş başarılı! (API entegrasyonu yapılacak)');
-    // navigate('/dashboard');
+      const result = await response.json();
+
+      if (result.success) {
+        // Sadece token'ı kaydet
+        localStorage.setItem('token', result.data.token);
+
+        alert('Giriş başarılı!');
+        navigate('/dashboard');
+      } else {
+        alert(result.error?.message || 'Giriş başarısız!');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+    }
   };
 
   return (
