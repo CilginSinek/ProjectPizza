@@ -1,6 +1,29 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { getCurrentUser, isAuthenticated, logout } from '../utils/auth';
+
+interface User {
+  username: string;
+}
 
 const Landing = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const isAuth = isAuthenticated();
+
+  useEffect(() => {
+    if (isAuth) {
+      getCurrentUser().then(userData => {
+        if (userData) {
+          setUser(userData);
+        }
+      });
+    }
+  }, [isAuth]);
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Navigation */}
@@ -10,19 +33,41 @@ const Landing = () => {
             <div className="flex items-center">
               <span className="text-2xl font-bold text-indigo-600">🔒 SecureShare</span>
             </div>
-            <div className="flex gap-4">
-              <Link
-                to="/login"
-                className="px-4 py-2 text-gray-700 hover:text-indigo-600 transition"
-              >
-                Giriş Yap
-              </Link>
-              <Link
-                to="/register"
-                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-              >
-                Kayıt Ol
-              </Link>
+            <div className="flex gap-4 items-center">
+              {isAuth ? (
+                <>
+                  <span className="text-gray-700 mr-2">
+                    Hoşgeldin, <span className="font-semibold">{user?.username}</span>
+                  </span>
+                  <Link
+                    to="/dashboard"
+                    className="px-4 py-2 text-indigo-600 hover:text-indigo-800 transition"
+                  >
+                    Panel
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    Çıkış Yap
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="px-4 py-2 text-gray-700 hover:text-indigo-600 transition"
+                  >
+                    Giriş Yap
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                  >
+                    Kayıt Ol
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -38,12 +83,21 @@ const Landing = () => {
             Dosyalarınızı AES-256 şifreleme ile güvenli bir şekilde paylaşın.
             Tek kullanımlık linkler, süre sınırlaması ve tam kontrol.
           </p>
-          <Link
-            to="/register"
-            className="inline-block px-8 py-3 bg-indigo-600 text-white text-lg font-semibold rounded-lg hover:bg-indigo-700 transition shadow-lg"
-          >
-            Hemen Başla
-          </Link>
+          {isAuth ? (
+            <Link
+              to="/dashboard"
+              className="inline-block px-8 py-3 bg-indigo-600 text-white text-lg font-semibold rounded-lg hover:bg-indigo-700 transition shadow-lg"
+            >
+              Panele Git
+            </Link>
+          ) : (
+            <Link
+              to="/register"
+              className="inline-block px-8 py-3 bg-indigo-600 text-white text-lg font-semibold rounded-lg hover:bg-indigo-700 transition shadow-lg"
+            >
+              Hemen Başla
+            </Link>
+          )}
         </div>
 
         {/* Features */}
@@ -123,12 +177,21 @@ const Landing = () => {
           <p className="text-xl mb-8 text-indigo-100">
             Hemen ücretsiz hesap oluştur, güvenli paylaşıma başla!
           </p>
-          <Link
-            to="/register"
-            className="inline-block px-8 py-3 bg-white text-indigo-600 text-lg font-semibold rounded-lg hover:bg-gray-100 transition shadow-lg"
-          >
-            Ücretsiz Kayıt Ol
-          </Link>
+          {isAuth ? (
+             <Link
+             to="/dashboard"
+             className="inline-block px-8 py-3 bg-white text-indigo-600 text-lg font-semibold rounded-lg hover:bg-gray-100 transition shadow-lg"
+           >
+             Panele Git
+           </Link>
+          ) : (
+            <Link
+              to="/register"
+              className="inline-block px-8 py-3 bg-white text-indigo-600 text-lg font-semibold rounded-lg hover:bg-gray-100 transition shadow-lg"
+            >
+              Ücretsiz Kayıt Ol
+            </Link>
+          )}
         </div>
       </div>
 
