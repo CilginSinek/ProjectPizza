@@ -50,11 +50,10 @@ async function uploadFiles(req, res) {
   }
   const file = req.files;
 
-  //* Validate file names
-  if (file.length !== req.body.fileNames.length) {
+  if(req.body.fileNames.length > 1){
     return res.status(400).send({
       status: "error",
-      message: "Number of files and file names do not match.",
+      message: "Only single file upload is supported in this endpoint.",
       timestamp: new Date().toISOString(),
     });
   }
@@ -127,7 +126,7 @@ async function downloadFile(req, res) {
       });
     }
     const readablePath = `${downloadPath}${fileRecord.filename}`;
-    readFile(fileRecord, readablePath);
+    await readFile(fileRecord, readablePath);
 
     res.setHeader(
       "Content-Disposition",
@@ -198,7 +197,7 @@ async function getFileMetadata(req, res) {
     }
     fileRecord.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await fileRecord.save();
-    readFile(fileRecord, downloadPath + fileRecord.filename);
+    await readFile(fileRecord, downloadPath + fileRecord.filename);
     fileRecord.encryption = undefined;
     const previewableMimeTypes = [
       "image/jpeg",

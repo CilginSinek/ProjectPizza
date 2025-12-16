@@ -2,18 +2,36 @@ const fs = require("fs");
 const crypto = require("crypto");
 
 const fileEncrypt = (input, output, key) => {
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
-  fs.createReadStream(input).pipe(cipher).pipe(fs.createWriteStream(output));
-  const authTag = cipher.getAuthTag();
-  return { iv, authTag };
+  return new Promise((resolve, reject) => {
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+    const inputStream = fs.createReadStream(input);
+    const outputStream = fs.createWriteStream(output);
+    
+    inputStream
+      .pipe(cipher)
+      .pipe(outputStream)
+      .on('finish', () => {
+        const authTag = cipher.getAuthTag();
+        resolve({ iv, authTag });
+      })
+      .on('error', reject);
+  });
 };
 
 const fileDecrypt = (input, output, key, iv, authTag) => {
-  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
-  decipher.setAuthTag(authTag);
-  fs.createReadStream(input).pipe(decipher).pipe(fs.createWriteStream(output));
-  return;
+  return new Promise((resolve, reject) => {
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+    decipher.setAuthTag(authTag);
+    const inputStream = fs.createReadStream(input);
+    const outputStream = fs.createWriteStream(output);
+    
+    inputStream
+      .pipe(decipher)
+      .pipe(outputStream)
+      .on('finish', () => resolve())
+      .on('error', reject);
+  });
 };
 
 const keyEncrypt = (fileKey, masterKey) => {
