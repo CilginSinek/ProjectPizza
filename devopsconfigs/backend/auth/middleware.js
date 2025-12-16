@@ -11,7 +11,10 @@ async function authMiddleware(req, res, next) {
   const token = auth.split(" ")[1];
   try {
     const decoded = jsonWebToken.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById({ id: decoded.id });
+    req.user = await User.findById(decoded.id).select("-password");
+    if (!req.user) {
+      return res.status(401).json({ status: "error", message: "Unauthorized" });
+    }
     next();
   } catch (err) {
     return res.status(401).json({ status: "error", message: "Unauthorized" });
