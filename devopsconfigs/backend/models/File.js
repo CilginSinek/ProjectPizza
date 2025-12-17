@@ -7,12 +7,12 @@ const fileSchema = new Schema({
   uploader: { type: Schema.Types.ObjectId, ref: "User", required: true },
   accesesLevel: {
     type: String,
-    enum: ["public", "private", "restricted"],
+    enum: ["public", "private", "restricted", "password"],
     default: "private",
   },
   size: { type: Number, required: true },
   downloadCount: { type: Number, default: 0 },
-  allowedUsers: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  allowedUsers: [{ type: String }], // Email addresses for restricted access
   downloadLimit: { type: Number, default: null },
   uploadedAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

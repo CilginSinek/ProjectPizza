@@ -4,8 +4,8 @@ const readFile = require("../utils/readFile");
 const saveFile = require("../utils/saveFile");
 const path = require("path");
 
-const uploadPath = path.join(__dirname, "../../encrypted/");
-const downloadPath = path.join(__dirname, "../../decrypted/");
+const uploadPath = path.join(__dirname, "../encrypted/");
+const downloadPath = path.join(__dirname, "../decrypted/");
 
 /**
  * @brief Handles file upload requests.
@@ -28,7 +28,7 @@ async function uploadFiles(req, res) {
     //* Validation of access level
     if (
       req.body.accessLevel &&
-      !["public", "private", "restricted"].includes(req.body.accessLevel)
+      !["public", "private", "restricted", "password"].includes(req.body.accessLevel)
     ) {
       return res.status(400).send({
         status: "error",
@@ -37,11 +37,17 @@ async function uploadFiles(req, res) {
       });
     }
     //* If access level is restricted, validate allowed users
+    // Normalize allowedUsers to array (FormData sends single item as string, multiple as array)
+    let allowedUsers = req.body.allowedUsers;
+    if (allowedUsers && typeof allowedUsers === 'string') {
+      allowedUsers = [allowedUsers]; // Convert string to array
+    }
+
+    console.log('DEBUG allowedUsers normalized:', allowedUsers, 'IsArray:', Array.isArray(allowedUsers));
+
     if (
       req.body.accessLevel === "restricted" &&
-      (!req.body.allowedUsers ||
-        !Array.isArray(req.body.allowedUsers) ||
-        req.body.allowedUsers.length === 0)
+      (!allowedUsers || !Array.isArray(allowedUsers) || allowedUsers.length === 0)
     ) {
       return res.status(400).send({
         status: "error",
@@ -49,7 +55,21 @@ async function uploadFiles(req, res) {
         timestamp: new Date().toISOString(),
       });
     }
-    const files = req.files;
+
+    // express-fileupload puts uploaded files in req.files
+    // Frontend sends with field name 'files'
+    const uploadedFile = req.files && req.files.files;
+
+    if (!uploadedFile) {
+      return res.status(400).send({
+        status: "error",
+        message: "No file data received.",
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // Handle single file (express-fileupload returns single file as object, not array)
+    const file = Array.isArray(uploadedFile) ? uploadedFile[0] : uploadedFile;
 
     //* Validate file names
     if (!req.body.fileName || typeof req.body.fileName !== "string" || req.body.fileName.length === 0) {
@@ -59,10 +79,7 @@ async function uploadFiles(req, res) {
         timestamp: new Date().toISOString(),
       });
     }
-    
-    // Tek dosya işleme (çoklu dosya için bu fonksiyon genişletilebilir)
-    const file = Array.isArray(files) ? files[0] : files;
-    
+
     const destinationPath = `${uploadPath}${Date.now()}_${req.body.fileName}`;
     const encryption = await saveFile(file.data, destinationPath);
     const newFile = new File({
@@ -108,7 +125,7 @@ async function uploadFiles(req, res) {
 
 async function downloadFile(req, res) {
   try {
-    const fileId = parseInt(req.params.id);
+    const fileId = req.params.id;
     const fileRecord = await File.findById(fileId);
     if (!fileRecord) {
       return res.status(404).send({
@@ -178,7 +195,7 @@ async function downloadFile(req, res) {
 
 async function getFileMetadata(req, res) {
   try {
-    const fileId = parseInt(req.params.id);
+    const fileId = req.params.id;
     const fileRecord = await File.findById(fileId);
     if (!fileRecord) {
       return res.status(404).send({
@@ -211,11 +228,11 @@ async function getFileMetadata(req, res) {
     fileRecord.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await fileRecord.save();
     await readFile(fileRecord, downloadPath + fileRecord.filename);
-    
+
     // Encryption bilgisini response'dan çıkar (güvenlik)
     const fileData = fileRecord.toObject();
     delete fileData.encryption;
-    
+
     const previewableMimeTypes = [
       "image/jpeg",
       "image/png",
@@ -271,7 +288,7 @@ async function getFileMetadata(req, res) {
 
 async function deleteFile(req, res) {
   try {
-    const fileId = parseInt(req.params.id);
+    const fileId = req.params.id;
     const fileRecord = await File.findById(fileId);
     if (!fileRecord) {
       return res.status(404).send({
@@ -288,7 +305,7 @@ async function deleteFile(req, res) {
         timestamp: new Date().toISOString(),
       });
     }
-    await fileRecord.remove();
+    await fileRecord.deleteOne();
     const eventLog = new Events({
       eventType: "file_deletion",
       userId: req.user._id,

@@ -6,7 +6,9 @@ const cors = require("cors");
 const fileEventsRouter = require("./routes/fileEventsRouter");
 const authRouter = require("./routes/authRouter");
 const pageRouter = require("./routes/pageRouter");
+const logsRouter = require("./routes/logsRouter");
 const fs = require("fs");
+const { initRedis } = require("./utils/redisClient");
 
 const app = express();
 mongoose
@@ -17,6 +19,9 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
+// Initialize Redis
+initRedis().catch((err) => console.error("Redis initialization failed:", err));
+
 const corsOptions = {
   origin: process.env.CORS_ORIGIN || "http://localhost:8080", // credentials: true ile * kullanılamaz
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -26,13 +31,13 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '10gb' }));
 app.use(fileUpload({
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  limits: { fileSize: 10 * 1024 * 1024 * 1024 }, // 10GB limit
   abortOnLimit: true,
-  responseOnLimit: 'File size limit exceeded (max 50MB)'
+  responseOnLimit: 'File size limit exceeded (max 10GB)'
 }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.urlencoded({ limit: '10gb', extended: true }));
 
 if (fs.existsSync("./encrypted") === false) {
   fs.mkdirSync("./encrypted");
@@ -61,6 +66,7 @@ app.get("/healthy_check", (req, res) => {
 app.use("/api/files", fileEventsRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/pages", pageRouter);
+app.use("/api/logs", logsRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

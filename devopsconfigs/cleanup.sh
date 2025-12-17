@@ -25,12 +25,12 @@ fi
 
 echo -e "${YELLOW}Deleting all resources in namespace: $NAMESPACE${NC}"
 
-# Hatalı yollar düzeltildi (devopsconfigs/frontend/frontend.yaml olarak)
-kubectl delete -f devopsconfigs/k8s-manifests/03-cronjob-cleanup.yaml -n $NAMESPACE --ignore-not-found=true
-kubectl delete -f devopsconfigs/frontend/frontend.yaml -n $NAMESPACE --ignore-not-found=true
-kubectl delete -f devopsconfigs/backend/backend.yaml -n $NAMESPACE --ignore-not-found=true
-kubectl delete -f devopsconfigs/k8s-manifests/01-mongo.yaml -n $NAMESPACE --ignore-not-found=true
-kubectl delete -f devopsconfigs/k8s-manifests/02-secrets.yaml -n $NAMESPACE --ignore-not-found=true
+# Doğru yollar
+kubectl delete -f k8s-manifests/03-cronjob-cleanup.yaml --ignore-not-found=true
+kubectl delete -f k8s-manifests/05-frontend.yaml --ignore-not-found=true
+kubectl delete -f k8s-manifests/04-backend.yaml --ignore-not-found=true
+kubectl delete -f k8s-manifests/01-mongo.yaml --ignore-not-found=true
+kubectl delete -f k8s-manifests/02-secrets.yaml --ignore-not-found=true
 
 echo ""
 read -p "Do you want to delete the namespace '$NAMESPACE' as well? (yes/no): " delete_ns

@@ -18,24 +18,24 @@ echo ""
 echo -e "${YELLOW}Building Backend image...${NC}"
 if [ -z "$REGISTRY" ]; then
     docker build \
-        -t devopsconfigs/backend-app:latest \
-        -t devopsconfigs/backend-app:$VERSION \
+        -t projectpizza-backend:latest \
+        -t projectpizza-backend:$VERSION \
         -f ./devopsconfigs/backend/Dockerfile \
         ./devopsconfigs/backend
     
     echo -e "${GREEN}Backend images created:${NC}"
-    echo "  - devopsconfigs/backend-app:latest"
-    echo "  - devopsconfigs/backend-app:$VERSION"
+    echo "  - projectpizza-backend:latest"
+    echo "  - projectpizza-backend:$VERSION"
 else
     docker build \
-        -t $REGISTRY/devopsconfigs/backend-app:latest \
-        -t $REGISTRY/devopsconfigs/backend-app:$VERSION \
+        -t $REGISTRY/projectpizza-backend:latest \
+        -t $REGISTRY/projectpizza-backend:$VERSION \
         -f ./devopsconfigs/backend/Dockerfile \
         ./devopsconfigs/backend
     
     echo -e "${GREEN}Backend images created:${NC}"
-    echo "  - $REGISTRY/devopsconfigs/backend-app:latest"
-    echo "  - $REGISTRY/devopsconfigs/backend-app:$VERSION"
+    echo "  - $REGISTRY/projectpizza-backend:latest"
+    echo "  - $REGISTRY/projectpizza-backend:$VERSION"
 fi
 
 echo ""
@@ -43,24 +43,24 @@ echo ""
 echo -e "${YELLOW}Building Frontend image...${NC}"
 if [ -z "$REGISTRY" ]; then
     docker build \
-        -t devopsconfigs/frontend-app:latest \
-        -t devopsconfigs/frontend-app:$VERSION \
+        -t projectpizza-frontend:latest \
+        -t projectpizza-frontend:$VERSION \
         -f ./devopsconfigs/frontend/Dockerfile \
         ./devopsconfigs/frontend
     
     echo -e "${GREEN}Frontend images created:${NC}"
-    echo "  - devopsconfigs/frontend-app:latest"
-    echo "  - devopsconfigs/frontend-app:$VERSION"
+    echo "  - projectpizza-frontend:latest"
+    echo "  - projectpizza-frontend:$VERSION"
 else
     docker build \
-        -t $REGISTRY/devopsconfigs/frontend-app:latest \
-        -t $REGISTRY/devopsconfigs/frontend-app:$VERSION \
+        -t $REGISTRY/projectpizza-frontend:latest \
+        -t $REGISTRY/projectpizza-frontend:$VERSION \
         -f ./devopsconfigs/frontend/Dockerfile \
         ./devopsconfigs/frontend
     
     echo -e "${GREEN}Frontend images created:${NC}"
-    echo "  - $REGISTRY/devopsconfigs/frontend-app:latest"
-    echo "  - $REGISTRY/devopsconfigs/frontend-app:$VERSION"
+    echo "  - $REGISTRY/projectpizza-frontend:latest"
+    echo "  - $REGISTRY/projectpizza-frontend:$VERSION"
 fi
 
 echo ""
@@ -70,7 +70,7 @@ echo -e "${GREEN}=================================${NC}"
 echo ""
 
 echo -e "${YELLOW}Local images:${NC}"
-docker images | grep -E "(devopsconfigs/backend-app|devopsconfigs/frontend-app)"
+docker images | grep -E "(projectpizza-backend|projectpizza-frontend)"
 
 echo ""
 echo -e "${YELLOW}Usage examples:${NC}"
@@ -80,8 +80,8 @@ echo ""
 
 if [ ! -z "$REGISTRY" ]; then
     echo -e "${YELLOW}To push images to registry:${NC}"
-    echo "  docker push $REGISTRY/devopsconfigs/backend-app:$VERSION"
-    echo "  docker push $REGISTRY/devopsconfigs/backend-app:latest"
-    echo "  docker push $REGISTRY/devopsconfigs/frontend-app:$VERSION"
-    echo "  docker push $REGISTRY/devopsconfigs/frontend-app:latest"
+    echo "  docker push $REGISTRY/projectpizza-backend:$VERSION"
+    echo "  docker push $REGISTRY/projectpizza-backend:latest"
+    echo "  docker push $REGISTRY/projectpizza-frontend:$VERSION"
+    echo "  docker push $REGISTRY/projectpizza-frontend:latest"
 fi

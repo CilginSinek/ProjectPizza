@@ -16,7 +16,9 @@ WORKDIR /app
 # Builder aşamasından sadece gerekli dosyaları alıyoruz
 COPY --from=builder /app .
 
-RUN chown -R node:node /app
+# Create encrypted and decrypted directories for file storage
+RUN mkdir -p /app/encrypted /app/decrypted && \
+    chown -R node:node /app
 
 # Healthcheck Node.js üzerinden yapılıyor (Ekstra pakete gerek yok)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"

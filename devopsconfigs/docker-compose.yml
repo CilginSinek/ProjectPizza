@@ -33,14 +33,18 @@ services:
       PORT: 3000
       MONGODB_URI: mongodb://mongodb:27017/projectpizza
       JWT_SECRET: your_jwt_secret_key
-      MASTER_KEY: your_master_key
+      MASTER_KEY: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
       CORS_ORIGIN: http://localhost:8080
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     volumes:
       - ./backend:/app
       - /app/node_modules
       - backend-tmp:/app/tmp
     depends_on:
       mongodb:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - pizza-network
@@ -61,6 +65,7 @@ services:
       - "8080:80"
     environment:
       VITE_API_URL: http://backend:3000
+      BACKEND_HOST: backend:3000  # Docker Compose için, Kubernetes'te backend-service olacak
     depends_on:
       backend:
         condition: service_healthy
@@ -72,10 +77,31 @@ services:
       timeout: 3s
       retries: 3
 
+  # Redis Cache Service
+  redis:
+    image: redis:7-alpine
+    container_name: pizza-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - pizza-network
+
+
 volumes:
   mongo-data:
     driver: local
   backend-tmp:
+    driver: local
+  redis-data:
     driver: local
 
 networks:

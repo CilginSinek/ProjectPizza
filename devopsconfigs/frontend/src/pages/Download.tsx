@@ -41,7 +41,7 @@ const Download = () => {
           }
         });
         const data = await response.json();
-        
+
         // Map backend data to frontend FileInfo interface
         if (data.status === 'success' && data.data) {
           const file = data.data;
@@ -66,7 +66,7 @@ const Download = () => {
             setIsVerified(true);
           }
         } else {
-             setError('Dosya bulunamadı.');
+          setError('Dosya bulunamadı.');
         }
 
       } catch (err) {
@@ -148,10 +148,10 @@ const Download = () => {
       const token = localStorage.getItem('token');
       // Real API call for download
       const response = await fetch(`/api/files/download/${fileInfo.id}`, {
-          method: 'GET',
-          headers: {
-             'Authorization': `Bearer ${token}`
-          }
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (!response.ok) throw new Error('Download failed');
@@ -358,7 +358,7 @@ const Download = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="text-2xl font-bold text-indigo-600">
-              🔒 SecureShare
+              🔒 PizzaFile
             </Link>
           </div>
         </div>

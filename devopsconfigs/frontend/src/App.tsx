@@ -1,12 +1,18 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Landing from './pages/Landing';
-import Register from './pages/Register';
-import Login from './pages/Login';
-import Upload from './pages/Upload';
-import Download from './pages/Download';
-import Dashboard from './pages/Dashboard';
-import { isAuthenticated } from './utils/auth';
+import React from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
+import Landing from "./pages/Landing";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import Upload from "./pages/Upload";
+import Download from "./pages/Download";
+import Dashboard from "./pages/Dashboard";
+import { isAuthenticated } from "./utils/auth";
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -38,44 +44,44 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
-        <Route 
-          path="/register" 
+        <Route
+          path="/register"
           element={
             <PublicRoute>
               <Register />
             </PublicRoute>
-          } 
+          }
         />
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
             <PublicRoute>
               <Login />
             </PublicRoute>
-          } 
+          }
         />
 
         {/* Protected Routes */}
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/upload" 
+        <Route
+          path="/upload"
           element={
             <ProtectedRoute>
               <Upload />
             </ProtectedRoute>
-          } 
+          }
         />
 
         {/* Shared/Public Access Route */}
-        <Route path="/d/:fileId" element={<Download />} />
-        
+        <Route path="/download/:fileId" element={<Download />} />
+
         {/* Catch all - Redirect to Home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

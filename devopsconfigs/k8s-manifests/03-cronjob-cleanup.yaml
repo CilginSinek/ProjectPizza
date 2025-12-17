@@ -2,6 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: tmp-cleanup-job
+  namespace: pizza-app
   labels:
     app: tmp-cleanup
 spec:

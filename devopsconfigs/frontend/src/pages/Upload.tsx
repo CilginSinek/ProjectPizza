@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { logout } from '../utils/auth';
+import { useState, useRef } from "react";
+import { Link } from "react-router-dom";
+import { logout, getToken } from "../utils/auth";
 
 interface UploadedFile {
   file: File;
@@ -13,14 +13,14 @@ const Upload = () => {
   const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [shareSettings, setShareSettings] = useState({
-    expiryTime: '24h',
-    downloadLimit: '5',
-    accessType: 'public' as 'public' | 'restricted' | 'password',
+    expiryTime: "24h",
+    downloadLimit: "5",
+    accessType: "public" as "public" | "restricted" | "password",
     allowedEmails: [] as string[],
-    password: '',
+    password: "",
   });
-  const [emailInput, setEmailInput] = useState('');
-  const [generatedLink, setGeneratedLink] = useState<string>('');
+  const [emailInput, setEmailInput] = useState("");
+  const [generatedLink, setGeneratedLink] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,7 +48,7 @@ const Upload = () => {
       file,
       progress: 0,
     });
-    setGeneratedLink('');
+    setGeneratedLink("");
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,7 +64,7 @@ const Upload = () => {
           ...shareSettings,
           allowedEmails: [...shareSettings.allowedEmails, emailInput],
         });
-        setEmailInput('');
+        setEmailInput("");
       }
     }
   };
@@ -79,94 +79,136 @@ const Upload = () => {
   const UploadFile = async () => {
     if (!selectedFile) return;
 
+    // Validate that file has a name
+    if (!selectedFile.file.name || selectedFile.file.name.trim().length === 0) {
+      console.error("File name is empty:", selectedFile.file);
+      alert("Dosya adı boş! Lütfen geçerli bir dosya seçin.");
+      setIsUploading(false);
+      return;
+    }
+
+    console.log("Uploading file:", {
+      name: selectedFile.file.name,
+      size: selectedFile.file.size,
+      type: selectedFile.file.type,
+      shareSettings,
+    });
+
+    // Validate restricted access has allowed emails
+    if (
+      shareSettings.accessType === "restricted" &&
+      shareSettings.allowedEmails.length === 0
+    ) {
+      alert("Kısıtlı erişim için en az bir email adresi belirtmelisiniz!");
+      setIsUploading(false);
+      return;
+    }
+
     setIsUploading(true);
 
     const formData = new FormData();
     // Backend expects 'files' field for the file data
-    formData.append('files', selectedFile.file);
-    
-    // Backend expects 'fileNames' array. Using [] ensures it's parsed as an array by Express (extended: true)
-    formData.append('fileName', selectedFile.file.name); 
+    formData.append("files", selectedFile.file);
 
-    formData.append('accessLevel', shareSettings.accessType); // Backend expects 'accessLevel'
-    formData.append('downloadLimit', shareSettings.downloadLimit === 'unlimited' ? '999' : shareSettings.downloadLimit);
-    
+    // Backend expects 'fileName' as a non-empty string
+    formData.append("fileName", selectedFile.file.name);
+
+    formData.append("accessLevel", shareSettings.accessType); // Backend expects 'accessLevel'
+    formData.append(
+      "downloadLimit",
+      shareSettings.downloadLimit === "unlimited"
+        ? "999"
+        : shareSettings.downloadLimit
+    );
+
     // Calculate expiresAt
     const now = new Date();
     let expiryDate = new Date();
     switch (shareSettings.expiryTime) {
-      case '1h': expiryDate.setHours(now.getHours() + 1); break;
-      case '24h': expiryDate.setDate(now.getDate() + 1); break;
-      case '7d': expiryDate.setDate(now.getDate() + 7); break;
-      case 'once': expiryDate.setDate(now.getDate() + 7); break; // Default long expiry, limit handles 'once'
-      default: expiryDate.setDate(now.getDate() + 1);
+      case "1h":
+        expiryDate.setHours(now.getHours() + 1);
+        break;
+      case "24h":
+        expiryDate.setDate(now.getDate() + 1);
+        break;
+      case "7d":
+        expiryDate.setDate(now.getDate() + 7);
+        break;
+      case "once":
+        expiryDate.setDate(now.getDate() + 7);
+        break; // Default long expiry, limit handles 'once'
+      default:
+        expiryDate.setDate(now.getDate() + 1);
     }
-    formData.append('expiresAt', expiryDate.toISOString());
-    
-    // Backend expects 'allowedUsers' (IDs mostly, but we send emails as placeholder since we can't map to IDs easily)
+    formData.append("expiresAt", expiryDate.toISOString());
+
+    // Backend expects 'allowedUsers' array
     if (shareSettings.allowedEmails.length > 0) {
-        shareSettings.allowedEmails.forEach(email => formData.append('allowedUsers[]', email));
+      shareSettings.allowedEmails.forEach((email) =>
+        formData.append("allowedUsers", email)
+      );
     }
 
-    const token = localStorage.getItem('token');
-    const response = await fetch('/api/files/upload', {
-      method: 'POST',
+    const token = getToken();
+    const response = await fetch("/api/files/upload", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: formData,
     });
     const data = await response.json();
-    
-    if (data.status === 'success' && data.data) {
-        // Construct link using the file ID from response
-        const fileId = data.data._id;
-        // Adjust this URL to match your frontend routing or direct API download link
-        const link = `${window.location.origin}/download/${fileId}`; 
-        setGeneratedLink(link);
-        setIsUploading(false);
-        alert('Dosya başarıyla yüklendi!');
-        // Optional: navigate('/dashboard'); // Let user see the link first
+
+    if (data.status === "success" && data.data) {
+      // Construct link using the file ID from response
+      const fileId = data.data._id;
+      // Adjust this URL to match your frontend routing or direct API download link
+      const link = `${window.location.origin}/download/${fileId}`;
+      setGeneratedLink(link);
+      setIsUploading(false);
+      alert("Dosya başarıyla yüklendi!");
+      // Optional: navigate('/dashboard'); // Let user see the link first
     } else {
-        setIsUploading(false);
-        alert('Yükleme başarısız: ' + (data.message || 'Bilinmeyen hata'));
+      setIsUploading(false);
+      alert("Yükleme başarısız: " + (data.message || "Bilinmeyen hata"));
     }
-
-
   };
 
   const handleUpload = () => {
     if (!selectedFile) return;
 
     // Validation for restricted access
-    if (shareSettings.accessType === 'restricted' && shareSettings.allowedEmails.length === 0) {
-      alert('En az bir e-posta adresi ekleyin!');
+    if (
+      shareSettings.accessType === "restricted" &&
+      shareSettings.allowedEmails.length === 0
+    ) {
+      alert("En az bir e-posta adresi ekleyin!");
       return;
     }
 
     // Validation for password
-    if (shareSettings.accessType === 'password' && !shareSettings.password) {
-      alert('Lütfen bir şifre belirleyin!');
+    if (shareSettings.accessType === "password" && !shareSettings.password) {
+      alert("Lütfen bir şifre belirleyin!");
       return;
     }
 
-    console.log('Uploading file:', selectedFile.file);
-    console.log('Share settings:', shareSettings);
+    console.log("Uploading file:", selectedFile.file);
+    console.log("Share settings:", shareSettings);
 
     UploadFile();
   };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(generatedLink);
-    alert('Link kopyalandı!');
+    alert("Link kopyalandı!");
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   return (
@@ -176,7 +218,7 @@ const Upload = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="text-2xl font-bold text-indigo-600">
-              🔒 SecureShare
+              🔒 PizzaFile
             </Link>
             <div className="flex gap-4">
               <Link
@@ -201,7 +243,8 @@ const Upload = () => {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Dosya Yükle</h1>
           <p className="text-gray-600 mb-8">
-            Dosyanızı yükleyin, paylaşım ayarlarını yapın ve güvenli link oluşturun.
+            Dosyanızı yükleyin, paylaşım ayarlarını yapın ve güvenli link
+            oluşturun.
           </p>
 
           {/* File Upload Area */}
@@ -209,10 +252,11 @@ const Upload = () => {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-xl p-12 text-center transition ${isDragging
-              ? 'border-indigo-500 bg-indigo-50'
-              : 'border-gray-300 hover:border-indigo-400'
-              }`}
+            className={`border-2 border-dashed rounded-xl p-12 text-center transition ${
+              isDragging
+                ? "border-indigo-500 bg-indigo-50"
+                : "border-gray-300 hover:border-indigo-400"
+            }`}
           >
             {!selectedFile ? (
               <div>
@@ -234,7 +278,7 @@ const Upload = () => {
                   className="hidden"
                 />
                 <p className="text-sm text-gray-500 mt-4">
-                  Maksimum dosya boyutu: 100 MB
+                  Maksimum dosya boyutu: 10GB
                 </p>
               </div>
             ) : (
@@ -266,7 +310,11 @@ const Upload = () => {
                 {selectedFile.progress === 100 && (
                   <div className="mb-4">
                     <div className="flex items-center justify-center text-green-600 mb-2">
-                      <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <svg
+                        className="w-6 h-6 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
                         <path
                           fillRule="evenodd"
                           d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -293,7 +341,9 @@ const Upload = () => {
           {/* Share Settings */}
           {selectedFile && !generatedLink && (
             <div className="mt-8 space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Paylaşım Ayarları</h2>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Paylaşım Ayarları
+              </h2>
 
               {/* Access Control */}
               <div>
@@ -302,20 +352,30 @@ const Upload = () => {
                 </label>
                 <div className="space-y-3">
                   {/* Public */}
-                  <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${shareSettings.accessType === 'public'
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-300 hover:border-indigo-400'
-                    }`}>
+                  <label
+                    className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${
+                      shareSettings.accessType === "public"
+                        ? "border-indigo-600 bg-indigo-50"
+                        : "border-gray-300 hover:border-indigo-400"
+                    }`}
+                  >
                     <input
                       type="radio"
                       name="accessType"
                       value="public"
-                      checked={shareSettings.accessType === 'public'}
-                      onChange={() => setShareSettings({ ...shareSettings, accessType: 'public' })}
+                      checked={shareSettings.accessType === "public"}
+                      onChange={() =>
+                        setShareSettings({
+                          ...shareSettings,
+                          accessType: "public",
+                        })
+                      }
                       className="mt-1 mr-3"
                     />
                     <div>
-                      <div className="font-medium text-gray-900">🌍 Herkese Açık</div>
+                      <div className="font-medium text-gray-900">
+                        🌍 Herkese Açık
+                      </div>
                       <div className="text-sm text-gray-600">
                         Linki olan herkes dosyayı indirebilir
                       </div>
@@ -323,32 +383,44 @@ const Upload = () => {
                   </label>
 
                   {/* Restricted */}
-                  <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${shareSettings.accessType === 'restricted'
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-300 hover:border-indigo-400'
-                    }`}>
+                  <label
+                    className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${
+                      shareSettings.accessType === "restricted"
+                        ? "border-indigo-600 bg-indigo-50"
+                        : "border-gray-300 hover:border-indigo-400"
+                    }`}
+                  >
                     <input
                       type="radio"
                       name="accessType"
                       value="restricted"
-                      checked={shareSettings.accessType === 'restricted'}
-                      onChange={() => setShareSettings({ ...shareSettings, accessType: 'restricted' })}
+                      checked={shareSettings.accessType === "restricted"}
+                      onChange={() =>
+                        setShareSettings({
+                          ...shareSettings,
+                          accessType: "restricted",
+                        })
+                      }
                       className="mt-1 mr-3"
                     />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">👥 Belirli Kişiler</div>
+                      <div className="font-medium text-gray-900">
+                        👥 Belirli Kişiler
+                      </div>
                       <div className="text-sm text-gray-600 mb-3">
                         Sadece e-posta adresi belirtilen kişiler erişebilir
                       </div>
 
-                      {shareSettings.accessType === 'restricted' && (
+                      {shareSettings.accessType === "restricted" && (
                         <div className="mt-3 space-y-2">
                           <div className="flex gap-2">
                             <input
                               type="email"
                               value={emailInput}
                               onChange={(e) => setEmailInput(e.target.value)}
-                              onKeyPress={(e) => e.key === 'Enter' && addEmail()}
+                              onKeyPress={(e) =>
+                                e.key === "Enter" && addEmail()
+                              }
                               placeholder="ornek@email.com"
                               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
                             />
@@ -367,7 +439,9 @@ const Upload = () => {
                                   key={email}
                                   className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-gray-200"
                                 >
-                                  <span className="text-sm text-gray-700">{email}</span>
+                                  <span className="text-sm text-gray-700">
+                                    {email}
+                                  </span>
                                   <button
                                     onClick={() => removeEmail(email)}
                                     className="text-red-600 hover:text-red-700 text-sm font-medium"
@@ -382,39 +456,6 @@ const Upload = () => {
                       )}
                     </div>
                   </label>
-
-                  {/* Password Protected */}
-                  <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${shareSettings.accessType === 'password'
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-300 hover:border-indigo-400'
-                    }`}>
-                    <input
-                      type="radio"
-                      name="accessType"
-                      value="password"
-                      checked={shareSettings.accessType === 'password'}
-                      onChange={() => setShareSettings({ ...shareSettings, accessType: 'password' })}
-                      className="mt-1 mr-3"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">🔐 Şifre Korumalı</div>
-                      <div className="text-sm text-gray-600 mb-3">
-                        İndirmek için şifre gerekli
-                      </div>
-
-                      {shareSettings.accessType === 'password' && (
-                        <div className="mt-3">
-                          <input
-                            type="password"
-                            value={shareSettings.password}
-                            onChange={(e) => setShareSettings({ ...shareSettings, password: e.target.value })}
-                            placeholder="Şifre belirleyin"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </label>
                 </div>
               </div>
 
@@ -425,20 +466,24 @@ const Upload = () => {
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
-                    { value: 'once', label: 'Tek Kullanım' },
-                    { value: '1h', label: '1 Saat' },
-                    { value: '24h', label: '1 Gün' },
-                    { value: '7d', label: '1 Hafta' },
+                    { value: "once", label: "Tek Kullanım" },
+                    { value: "1h", label: "1 Saat" },
+                    { value: "24h", label: "1 Gün" },
+                    { value: "7d", label: "1 Hafta" },
                   ].map((option) => (
                     <button
                       key={option.value}
                       onClick={() =>
-                        setShareSettings({ ...shareSettings, expiryTime: option.value })
+                        setShareSettings({
+                          ...shareSettings,
+                          expiryTime: option.value,
+                        })
                       }
-                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${shareSettings.expiryTime === option.value
-                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                        : 'border-gray-300 hover:border-indigo-400'
-                        }`}
+                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${
+                        shareSettings.expiryTime === option.value
+                          ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                          : "border-gray-300 hover:border-indigo-400"
+                      }`}
                     >
                       {option.label}
                     </button>
@@ -453,20 +498,24 @@ const Upload = () => {
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
-                    { value: '1', label: '1 İndirme' },
-                    { value: '5', label: '5 İndirme' },
-                    { value: '10', label: '10 İndirme' },
-                    { value: 'unlimited', label: 'Sınırsız' },
+                    { value: "1", label: "1 İndirme" },
+                    { value: "5", label: "5 İndirme" },
+                    { value: "10", label: "10 İndirme" },
+                    { value: "unlimited", label: "Sınırsız" },
                   ].map((option) => (
                     <button
                       key={option.value}
                       onClick={() =>
-                        setShareSettings({ ...shareSettings, downloadLimit: option.value })
+                        setShareSettings({
+                          ...shareSettings,
+                          downloadLimit: option.value,
+                        })
                       }
-                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${shareSettings.downloadLimit === option.value
-                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                        : 'border-gray-300 hover:border-indigo-400'
-                        }`}
+                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${
+                        shareSettings.downloadLimit === option.value
+                          ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                          : "border-gray-300 hover:border-indigo-400"
+                      }`}
                     >
                       {option.label}
                     </button>
@@ -478,12 +527,13 @@ const Upload = () => {
               <button
                 onClick={handleUpload}
                 disabled={isUploading}
-                className={`w-full py-3 rounded-lg font-semibold transition shadow-md ${isUploading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                  }`}
+                className={`w-full py-3 rounded-lg font-semibold transition shadow-md ${
+                  isUploading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                }`}
               >
-                {isUploading ? 'Yükleniyor...' : 'Yükle ve Link Oluştur'}
+                {isUploading ? "Yükleniyor..." : "Yükle ve Link Oluştur"}
               </button>
             </div>
           )}
@@ -492,7 +542,11 @@ const Upload = () => {
           {generatedLink && (
             <div className="mt-8 p-6 bg-green-50 border-2 border-green-200 rounded-xl">
               <div className="flex items-center mb-4">
-                <svg className="w-6 h-6 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-6 h-6 text-green-600 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fillRule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -522,54 +576,59 @@ const Upload = () => {
               </div>
               <div className="text-sm text-gray-700 space-y-1">
                 <p>
-                  🔒 Erişim:{' '}
+                  🔒 Erişim:{" "}
                   <span className="font-semibold">
-                    {shareSettings.accessType === 'public' && 'Herkese Açık'}
-                    {shareSettings.accessType === 'restricted' && `Belirli Kişiler (${shareSettings.allowedEmails.length} kişi)`}
-                    {shareSettings.accessType === 'password' && 'Şifre Korumalı'}
+                    {shareSettings.accessType === "public" && "Herkese Açık"}
+                    {shareSettings.accessType === "restricted" &&
+                      `Belirli Kişiler (${shareSettings.allowedEmails.length} kişi)`}
+                    {shareSettings.accessType === "password" &&
+                      "Şifre Korumalı"}
                   </span>
                 </p>
                 <p>
-                  ⏱️ Geçerlilik:{' '}
+                  ⏱️ Geçerlilik:{" "}
                   <span className="font-semibold">
-                    {shareSettings.expiryTime === 'once'
-                      ? 'Tek Kullanımlık'
-                      : shareSettings.expiryTime === '1h'
-                        ? '1 Saat'
-                        : shareSettings.expiryTime === '24h'
-                          ? '1 Gün'
-                          : '1 Hafta'}
+                    {shareSettings.expiryTime === "once"
+                      ? "Tek Kullanımlık"
+                      : shareSettings.expiryTime === "1h"
+                      ? "1 Saat"
+                      : shareSettings.expiryTime === "24h"
+                      ? "1 Gün"
+                      : "1 Hafta"}
                   </span>
                 </p>
                 <p>
-                  📥 İndirme Limiti:{' '}
+                  📥 İndirme Limiti:{" "}
                   <span className="font-semibold">
-                    {shareSettings.downloadLimit === 'unlimited'
-                      ? 'Sınırsız'
+                    {shareSettings.downloadLimit === "unlimited"
+                      ? "Sınırsız"
                       : `${shareSettings.downloadLimit} İndirme`}
                   </span>
                 </p>
-                {shareSettings.accessType === 'restricted' && shareSettings.allowedEmails.length > 0 && (
-                  <div className="mt-2">
-                    <p className="font-semibold mb-1">İzin verilen e-postalar:</p>
-                    <div className="pl-4 space-y-1">
-                      {shareSettings.allowedEmails.map((email) => (
-                        <p key={email}>• {email}</p>
-                      ))}
+                {shareSettings.accessType === "restricted" &&
+                  shareSettings.allowedEmails.length > 0 && (
+                    <div className="mt-2">
+                      <p className="font-semibold mb-1">
+                        İzin verilen e-postalar:
+                      </p>
+                      <div className="pl-4 space-y-1">
+                        {shareSettings.allowedEmails.map((email) => (
+                          <p key={email}>• {email}</p>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
               <button
                 onClick={() => {
                   setSelectedFile(null);
-                  setGeneratedLink('');
+                  setGeneratedLink("");
                   setShareSettings({
-                    expiryTime: '24h',
-                    downloadLimit: '5',
-                    accessType: 'public',
+                    expiryTime: "24h",
+                    downloadLimit: "5",
+                    accessType: "public",
                     allowedEmails: [],
-                    password: '',
+                    password: "",
                   });
                 }}
                 className="mt-4 w-full py-2 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"

@@ -10,7 +10,6 @@ const Login = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [rememberMe, setRememberMe] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -65,7 +64,7 @@ const Login = () => {
 
       // Backend returns { status: "success" | "error", data, message }
       if (result.status === 'success') {
-        setToken(result.data.token, rememberMe);
+        setToken(result.data.token, true); // Always save to localStorage
         alert('Giriş başarılı!');
         navigate('/dashboard');
       } else {
@@ -83,7 +82,7 @@ const Login = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="text-3xl font-bold text-indigo-600">
-            🔒 SecureShare
+            🔒 PizzaFile
           </Link>
           <p className="text-gray-600 mt-2">Hesabınıza Giriş Yapın</p>
         </div>
@@ -101,9 +100,8 @@ const Login = () => {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition ${
-                errors.username ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition ${errors.username ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Kullanıcı adınızı girin"
             />
             {errors.username && (
@@ -122,9 +120,8 @@ const Login = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition ${errors.password ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Şifrenizi girin"
             />
             {errors.password && (
@@ -132,17 +129,8 @@ const Login = () => {
             )}
           </div>
 
-          {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-              />
-              <span className="ml-2 text-sm text-gray-600">Beni Hatırla</span>
-            </label>
+          {/* Forgot Password */}
+          <div className="flex items-center justify-end">
             <Link to="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-700">
               Şifremi Unuttum
             </Link>
@@ -167,7 +155,7 @@ const Login = () => {
           </div>
         </div>
 
-       {/* Social Login (Optional) 
+        {/* Social Login (Optional) 
         <div className="mt-6 space-y-3">
           <button
             type="button"

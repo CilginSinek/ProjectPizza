@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { logout, getToken } from '../utils/auth';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { logout, getToken } from "../utils/auth";
 
 interface SharedFile {
   id: string;
@@ -8,30 +8,30 @@ interface SharedFile {
   size: number;
   uploadedAt: string;
   expiresAt: string;
-  accessType: 'public' | 'restricted' | 'password';
+  accessType: "public" | "restricted" | "password";
   downloadCount: number;
   downloadLimit: number;
   shareLink: string;
-  status: 'active' | 'expired' | 'limit_reached';
+  status: "active" | "expired" | "limit_reached";
 }
 
 const Dashboard = () => {
   const [files, setFiles] = useState<SharedFile[]>([]);
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('tr-TR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
+    return date.toLocaleDateString("tr-TR", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -40,42 +40,42 @@ const Dashboard = () => {
     const expiry = new Date(expiresAt).getTime();
     const diff = expiry - now;
 
-    if (diff < 0) return 'Süresi doldu';
+    if (diff < 0) return "Süresi doldu";
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
     if (days > 0) return `${days} gün kaldı`;
     if (hours > 0) return `${hours} saat kaldı`;
-    return 'Yakında dolacak';
+    return "Yakında dolacak";
   };
 
   const copyToClipboard = (link: string) => {
     navigator.clipboard.writeText(link);
-    alert('Link kopyalandı!');
+    alert("Link kopyalandı!");
   };
 
   const handleDelete = async (fileId: string) => {
-    if (window.confirm('Bu dosyayı silmek istediğinize emin misiniz?')) {
+    if (window.confirm("Bu dosyayı silmek istediğinize emin misiniz?")) {
       try {
         const token = getToken();
         const response = await fetch(`/api/files/delete/${fileId}`, {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
         if (response.ok) {
           setFiles(files.filter((f) => f.id !== fileId));
-          alert('Dosya başarıyla silindi.');
+          alert("Dosya başarıyla silindi.");
         } else {
           const data = await response.json();
-          alert(data.message || 'Dosya silinirken bir hata oluştu.');
+          alert(data.message || "Dosya silinirken bir hata oluştu.");
         }
       } catch (error) {
-        console.error('Delete error:', error);
-        alert('Bir hata oluştu.');
+        console.error("Delete error:", error);
+        alert("Bir hata oluştu.");
       }
     }
   };
@@ -85,15 +85,15 @@ const Dashboard = () => {
       const token = getToken();
       const response = await fetch(file.shareLink, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!response.ok) throw new Error('Download failed');
+      if (!response.ok) throw new Error("Download failed");
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = file.name;
       document.body.appendChild(a);
@@ -101,8 +101,8 @@ const Dashboard = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Download error:', error);
-      alert('İndirme başarısız oldu.');
+      console.error("Download error:", error);
+      alert("İndirme başarısız oldu.");
     }
   };
 
@@ -110,20 +110,21 @@ const Dashboard = () => {
   const stats = {
     totalFiles: files.length,
     totalDownloads: files.reduce((sum, file) => sum + file.downloadCount, 0),
-    activeFiles: files.filter((f) => f.status === 'active').length,
-    expiredFiles: files.filter((f) => f.status === 'expired' || f.status === 'limit_reached')
-      .length,
+    activeFiles: files.filter((f) => f.status === "active").length,
+    expiredFiles: files.filter(
+      (f) => f.status === "expired" || f.status === "limit_reached"
+    ).length,
   };
 
   useEffect(() => {
     const fetchFiles = async () => {
       try {
         const token = getToken();
-        const response = await fetch('/api/pages/dashboard', {
+        const response = await fetch("/api/pages/dashboard", {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         });
 
         if (!response.ok) {
@@ -131,7 +132,7 @@ const Dashboard = () => {
         }
 
         const data = await response.json();
-        
+
         // Map backend data to frontend interface
         const mappedFiles = (data.data || []).map((file: any) => ({
           id: file._id,
@@ -139,16 +140,19 @@ const Dashboard = () => {
           size: file.size,
           uploadedAt: file.uploadedAt || file.createdAt,
           expiresAt: file.expiresAt,
-          accessType: file.accessLevel || 'private', // Backend uses accessLevel
+          accessType: file.accessLevel || "private", // Backend uses accessLevel
           downloadCount: file.downloadCount,
           downloadLimit: file.downloadLimit || 999, // Fallback
           shareLink: `${window.location.origin}/download/${file._id}`, // Frontend route for download or direct API link
-          status: (file.downloadCount >= (file.downloadLimit || 999)) ? 'limit_reached' : 'active' // Simple status logic
+          status:
+            file.downloadCount >= (file.downloadLimit || 999)
+              ? "limit_reached"
+              : "active", // Simple status logic
         }));
 
         setFiles(mappedFiles);
       } catch (error) {
-        console.error('Error fetching files:', error);
+        console.error("Error fetching files:", error);
         setFiles([]);
       }
     };
@@ -162,7 +166,7 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="text-2xl font-bold text-indigo-600">
-              🔒 SecureShare
+              🔒 PizzaFile
             </Link>
             <div className="flex gap-4">
               <Link
@@ -196,7 +200,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Toplam Dosya</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalFiles}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {stats.totalFiles}
+                </p>
               </div>
               <div className="text-4xl">📁</div>
             </div>
@@ -206,7 +212,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Toplam İndirme</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalDownloads}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {stats.totalDownloads}
+                </p>
               </div>
               <div className="text-4xl">📥</div>
             </div>
@@ -216,7 +224,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Aktif Paylaşım</p>
-                <p className="text-3xl font-bold text-green-600">{stats.activeFiles}</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {stats.activeFiles}
+                </p>
               </div>
               <div className="text-4xl">✅</div>
             </div>
@@ -226,7 +236,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Süresi Dolan</p>
-                <p className="text-3xl font-bold text-red-600">{stats.expiredFiles}</p>
+                <p className="text-3xl font-bold text-red-600">
+                  {stats.expiredFiles}
+                </p>
               </div>
               <div className="text-4xl">⏰</div>
             </div>
@@ -268,36 +280,43 @@ const Dashboard = () => {
                   <tr key={file.id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{file.name}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {file.name}
+                        </div>
                         <div className="text-sm text-gray-500">
-                          {formatFileSize(file.size)} • {formatDate(file.uploadedAt)}
+                          {formatFileSize(file.size)} •{" "}
+                          {formatDate(file.uploadedAt)}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${file.accessType === 'public'
-                            ? 'bg-blue-100 text-blue-800'
-                            : file.accessType === 'restricted'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-orange-100 text-orange-800'
-                          }`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          file.accessType === "public"
+                            ? "bg-blue-100 text-blue-800"
+                            : file.accessType === "restricted"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-orange-100 text-orange-800"
+                        }`}
                       >
-                        {file.accessType === 'public' && '🌍 Herkese Açık'}
-                        {file.accessType === 'restricted' && '👥 Belirli Kişiler'}
-                        {file.accessType === 'password' && '🔐 Şifreli'}
+                        {file.accessType === "public" && "🌍 Herkese Açık"}
+                        {file.accessType === "restricted" &&
+                          "👥 Belirli Kişiler"}
+                        {file.accessType === "password" && "🔐 Şifreli"}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {file.downloadCount} / {file.downloadLimit === 999 ? '∞' : file.downloadLimit}
+                        {file.downloadCount} /{" "}
+                        {file.downloadLimit === 999 ? "∞" : file.downloadLimit}
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                         <div
-                          className={`h-1.5 rounded-full ${file.downloadCount >= file.downloadLimit
-                              ? 'bg-red-500'
-                              : 'bg-green-500'
-                            }`}
+                          className={`h-1.5 rounded-full ${
+                            file.downloadCount >= file.downloadLimit
+                              ? "bg-red-500"
+                              : "bg-green-500"
+                          }`}
                           style={{
                             width: `${Math.min(
                               (file.downloadCount / file.downloadLimit) * 100,
@@ -316,17 +335,17 @@ const Dashboard = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {file.status === 'active' && (
+                      {file.status === "active" && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           ✓ Aktif
                         </span>
                       )}
-                      {file.status === 'expired' && (
+                      {file.status === "expired" && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           ⏰ Süresi Doldu
                         </span>
                       )}
-                      {file.status === 'limit_reached' && (
+                      {file.status === "limit_reached" && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                           🚫 Limit Doldu
                         </span>
@@ -402,10 +421,13 @@ const Dashboard = () => {
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Ortalama Dosya Boyutu</span>
+                <span className="text-sm text-gray-600">
+                  Ortalama Dosya Boyutu
+                </span>
                 <span className="text-sm font-semibold text-gray-900">
                   {formatFileSize(
-                    files.reduce((sum, f) => sum + f.size, 0) / files.length || 0
+                    files.reduce((sum, f) => sum + f.size, 0) / files.length ||
+                      0
                   )}
                 </span>
               </div>
@@ -418,7 +440,8 @@ const Dashboard = () => {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Ortalama İndirme</span>
                 <span className="text-sm font-semibold text-gray-900">
-                  {(stats.totalDownloads / files.length || 0).toFixed(1)} / dosya
+                  {(stats.totalDownloads / files.length || 0).toFixed(1)} /
+                  dosya
                 </span>
               </div>
             </div>

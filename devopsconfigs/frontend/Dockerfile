@@ -20,8 +20,11 @@ FROM nginx:alpine
 # Builder asamasindan cikan 'dist' klasorunu al
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Nginx ayarini kopyala
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Nginx template'ini kopyala
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+
+# Environment variable default değeri
+ENV BACKEND_HOST=backend:3000
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --retries=3   CMD wget --quiet --tries=1 --spider http://localhost:80/ || exit 1

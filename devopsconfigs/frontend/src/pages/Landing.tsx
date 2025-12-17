@@ -15,7 +15,7 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <span className="text-2xl font-bold text-indigo-600">🔒 SecureShare</span>
+              <span className="text-2xl font-bold text-indigo-600">🔒 PizzaFile</span>
             </div>
             <div className="flex gap-4 items-center">
               {isAuth ? (
@@ -160,12 +160,12 @@ const Landing = () => {
             Hemen ücretsiz hesap oluştur, güvenli paylaşıma başla!
           </p>
           {isAuth ? (
-             <Link
-             to="/dashboard"
-             className="inline-block px-8 py-3 bg-white text-indigo-600 text-lg font-semibold rounded-lg hover:bg-gray-100 transition shadow-lg"
-           >
-             Panele Git
-           </Link>
+            <Link
+              to="/dashboard"
+              className="inline-block px-8 py-3 bg-white text-indigo-600 text-lg font-semibold rounded-lg hover:bg-gray-100 transition shadow-lg"
+            >
+              Panele Git
+            </Link>
           ) : (
             <Link
               to="/register"
@@ -181,7 +181,7 @@ const Landing = () => {
       <footer className="bg-white border-t mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-gray-600">
-            <p>© 2025 SecureShare - VADI Hackathon WTH'25</p>
+            <p>© 2025 PizzaFile - VADI Hackathon WTH'25</p>
           </div>
         </div>
       </footer>
