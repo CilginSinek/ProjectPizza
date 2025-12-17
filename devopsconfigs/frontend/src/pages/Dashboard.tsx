@@ -291,13 +291,12 @@ const Dashboard = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          file.accessType === "public"
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${file.accessType === "public"
                             ? "bg-blue-100 text-blue-800"
                             : file.accessType === "restricted"
-                            ? "bg-purple-100 text-purple-800"
-                            : "bg-orange-100 text-orange-800"
-                        }`}
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-orange-100 text-orange-800"
+                          }`}
                       >
                         {file.accessType === "public" && "🌍 Herkese Açık"}
                         {file.accessType === "restricted" &&
@@ -312,11 +311,10 @@ const Dashboard = () => {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                         <div
-                          className={`h-1.5 rounded-full ${
-                            file.downloadCount >= file.downloadLimit
+                          className={`h-1.5 rounded-full ${file.downloadCount >= file.downloadLimit
                               ? "bg-red-500"
                               : "bg-green-500"
-                          }`}
+                            }`}
                           style={{
                             width: `${Math.min(
                               (file.downloadCount / file.downloadLimit) * 100,
@@ -427,7 +425,7 @@ const Dashboard = () => {
                 <span className="text-sm font-semibold text-gray-900">
                   {formatFileSize(
                     files.reduce((sum, f) => sum + f.size, 0) / files.length ||
-                      0
+                    0
                   )}
                 </span>
               </div>

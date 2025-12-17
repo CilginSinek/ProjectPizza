@@ -252,11 +252,10 @@ const Upload = () => {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-xl p-12 text-center transition ${
-              isDragging
+            className={`border-2 border-dashed rounded-xl p-12 text-center transition ${isDragging
                 ? "border-indigo-500 bg-indigo-50"
                 : "border-gray-300 hover:border-indigo-400"
-            }`}
+              }`}
           >
             {!selectedFile ? (
               <div>
@@ -353,11 +352,10 @@ const Upload = () => {
                 <div className="space-y-3">
                   {/* Public */}
                   <label
-                    className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${
-                      shareSettings.accessType === "public"
+                    className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${shareSettings.accessType === "public"
                         ? "border-indigo-600 bg-indigo-50"
                         : "border-gray-300 hover:border-indigo-400"
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -384,11 +382,10 @@ const Upload = () => {
 
                   {/* Restricted */}
                   <label
-                    className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${
-                      shareSettings.accessType === "restricted"
+                    className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${shareSettings.accessType === "restricted"
                         ? "border-indigo-600 bg-indigo-50"
                         : "border-gray-300 hover:border-indigo-400"
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -479,11 +476,10 @@ const Upload = () => {
                           expiryTime: option.value,
                         })
                       }
-                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${
-                        shareSettings.expiryTime === option.value
+                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${shareSettings.expiryTime === option.value
                           ? "border-indigo-600 bg-indigo-50 text-indigo-700"
                           : "border-gray-300 hover:border-indigo-400"
-                      }`}
+                        }`}
                     >
                       {option.label}
                     </button>
@@ -511,11 +507,10 @@ const Upload = () => {
                           downloadLimit: option.value,
                         })
                       }
-                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${
-                        shareSettings.downloadLimit === option.value
+                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${shareSettings.downloadLimit === option.value
                           ? "border-indigo-600 bg-indigo-50 text-indigo-700"
                           : "border-gray-300 hover:border-indigo-400"
-                      }`}
+                        }`}
                     >
                       {option.label}
                     </button>
@@ -527,11 +522,10 @@ const Upload = () => {
               <button
                 onClick={handleUpload}
                 disabled={isUploading}
-                className={`w-full py-3 rounded-lg font-semibold transition shadow-md ${
-                  isUploading
+                className={`w-full py-3 rounded-lg font-semibold transition shadow-md ${isUploading
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-indigo-600 hover:bg-indigo-700 text-white"
-                }`}
+                  }`}
               >
                 {isUploading ? "Yükleniyor..." : "Yükle ve Link Oluştur"}
               </button>
@@ -591,10 +585,10 @@ const Upload = () => {
                     {shareSettings.expiryTime === "once"
                       ? "Tek Kullanımlık"
                       : shareSettings.expiryTime === "1h"
-                      ? "1 Saat"
-                      : shareSettings.expiryTime === "24h"
-                      ? "1 Gün"
-                      : "1 Hafta"}
+                        ? "1 Saat"
+                        : shareSettings.expiryTime === "24h"
+                          ? "1 Gün"
+                          : "1 Hafta"}
                   </span>
                 </p>
                 <p>

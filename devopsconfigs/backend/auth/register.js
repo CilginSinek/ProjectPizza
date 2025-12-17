@@ -2,8 +2,6 @@ const User = require("../models/User");
 const jsonWebToken = require("jsonwebtoken");
 require("dotenv").config();
 
-require("dotenv").config();
-
 function register(req, res) {
   const { username, email, password } = req.body;
   if (

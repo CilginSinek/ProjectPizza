@@ -8,7 +8,7 @@ const { fileEncrypt, keyEncrypt } = require("./crypting");
 const saveFile = async (fileBuffer, destinationPath) => {
   try {
     const tempPath = destinationPath + ".tmp";
-    
+
     const dir = path.dirname(destinationPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -21,14 +21,14 @@ const saveFile = async (fileBuffer, destinationPath) => {
       filekey
     );
     fs.unlinkSync(tempPath);
-    
+
 
     const {
       encryptedKey: wrappedKey,
       iv: keyIv,
       authTag: keyAuthTag,
     } = keyEncrypt(filekey, masterKey);
-    
+
     return {
       wrappedKey: wrappedKey.toString('base64'),
       keyIv: keyIv.toString('base64'),

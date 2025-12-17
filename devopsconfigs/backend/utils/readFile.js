@@ -9,14 +9,14 @@ const readFile = async (myfile, readablePath) => {
     const keyAuthTag = Buffer.from(myfile.encryption.keyAuthTag, 'base64');
     const fileIv = Buffer.from(myfile.encryption.fileIv, 'base64');
     const fileAuthTag = Buffer.from(myfile.encryption.fileAuthTag, 'base64');
-    
+
     const decryptedKey = keyDecrypt(
       wrappedKey,
       masterKey,
       keyIv,
       keyAuthTag
     );
-    
+
     await fileDecrypt(
       myfile.path,
       readablePath,
@@ -24,7 +24,7 @@ const readFile = async (myfile, readablePath) => {
       fileIv,
       fileAuthTag
     );
-    
+
     return readablePath;
   } catch (error) {
     throw new Error("File decryption failed: " + error.message);

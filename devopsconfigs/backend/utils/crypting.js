@@ -7,7 +7,7 @@ const fileEncrypt = (input, output, key) => {
     const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
     const inputStream = fs.createReadStream(input);
     const outputStream = fs.createWriteStream(output);
-    
+
     inputStream
       .pipe(cipher)
       .pipe(outputStream)
@@ -25,7 +25,7 @@ const fileDecrypt = (input, output, key, iv, authTag) => {
     decipher.setAuthTag(authTag);
     const inputStream = fs.createReadStream(input);
     const outputStream = fs.createWriteStream(output);
-    
+
     inputStream
       .pipe(decipher)
       .pipe(outputStream)
