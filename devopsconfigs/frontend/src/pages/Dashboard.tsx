@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { logout } from '../utils/auth';
+import { logout, getToken } from '../utils/auth';
 
 interface SharedFile {
   id: string;
@@ -58,7 +58,7 @@ const Dashboard = () => {
   const handleDelete = async (fileId: string) => {
     if (window.confirm('Bu dosyayı silmek istediğinize emin misiniz?')) {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const response = await fetch(`/api/files/delete/${fileId}`, {
           method: 'DELETE',
           headers: {
@@ -82,7 +82,7 @@ const Dashboard = () => {
 
   const handleDownload = async (file: SharedFile) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await fetch(file.shareLink, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -118,7 +118,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const response = await fetch('/api/pages/dashboard', {
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -7,8 +7,10 @@ export const getToken = (): string | null => {
 export const setToken = (token: string, rememberMe: boolean = true): void => {
   if (rememberMe) {
     localStorage.setItem('token', token);
+    sessionStorage.removeItem('token');
   } else {
     sessionStorage.setItem('token', token);
+    localStorage.removeItem('token');
   }
 };
 
